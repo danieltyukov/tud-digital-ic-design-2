@@ -1,0 +1,35 @@
+# Credentials and passwords
+password*.txt
+*password*.txt
+credentials.txt
+logins.txt
+*.key
+*.pem
+
+# Mount point (sshfs target) — never commit remote contents
+tsmcBCD/
+
+# Large simulation output files
+*.dat
+*.psf/
+*.raw
+*.psfxl/
+
+# Cadence cruft
+.cadence/
+panic*.log
+CDS.log
+xcelium.d/
+INCA_libs/
+
+# Local Claude Code settings (personal allowlist)
+.claude/
+
+# Editor / OS
+__MACOSX/
+.DS_Store
+*.swp
+*.swo
+*~
+__pycache__/
+*.pyc

@@ -1,0 +1,314 @@
+/* setsim */
+simulator('spectre)
+
+/* CUSTOM Version 2.1 changed to multicore usage and binary input. */
+/* Features
+	- No more usage of EarlyHigh parameter: pulsetrain starts at out1
+	- Addition of codeLimit parameter: we can stop earlier than output 31
+	- Measurement of a binary output */ 
+
+/* Version 1.1. added some more comment */
+/* Version 1.0. Fixed some Boolean type errors. */
+/* Version 0.3. Fixed initialization of "early" and "late" in INL calculation */
+
+/*	Setup you parameters here
+	Vdd is the Vdd voltage
+	timeStep is the delay step for the parametric sweep
+	transientSimTime is the transient simulation time for which the transient simulations are run
+	startDelay is the offset, i.e. the first delay, for which the sweep is run
+	corners is a list of all the corner which are run, normally: "tt" "ff" "ss" "snfp" "fnsp"
+	you can omit a corner by deleting it from this list */
+
+/* make sure you specify Vdd as a floating point number, so write "1.0" and not "1" */
+Vdd = 1.8
+
+/*
+timestep should be approximately resolution / 5 for a fast simulation and
+resolution / 20 for an accurate simulation
+*/
+timeStep = 1.0e-12
+
+transientSimTime = 5.5e-9
+startDelay = 0e-12
+/* corners = `("tt" "ss") */
+corners = `("tt")
+codeLimit= 31
+
+desVar( "supply" Vdd)
+/* Add more simulation Variables here, if needed */
+desVar( "delayscale" 6)
+
+
+/* Do not change anything below this line unless you know what you are doing !!! */
+
+/* Setup the simulator */
+design( "~/tsmcBCD/simulation/TB_TDC/spectre/schematic/netlist/netlist")
+resultsDir( "~/tmp/")
+
+/* The files for the output */
+fout = outfile("~/simulation/results_tdc_binary.csv" "w")
+flog = outfile("~/simulation/log_tdc_binary.txt" "w")
+
+/* Only saves the important nodes and current */
+printf("Debug line\n")
+delete('save)
+save( 'v "/Q1" "/Q2" "/Q3" "/Q4" "/Q5" "/Q6" "/Q7" "/Q8" "/Q9" "/Q10" "/Q11" "/Q12" "/Q13" "/Q14" "/Q15" "/Q16" "/Q17" "/Q18" "/Q19" "/Q20" "/Q21" "/Q22" "/Q23" "/Q24" "/Q25" "/Q26" "/Q27" "/Q28" "/Q29" "/Q30" "/Q31")
+save('i "/I1/VDD")
+save('v "/VDD")
+temp( 27 )
+
+/* Functions */
+procedure( loadlibs( corner)
+	alt_n_corner = if(corner=="snfp" "ss" corner)
+	alt_n_corner = if(corner=="fnsp" "ff" alt_n_corner)
+	alt_p_corner = if(corner=="snfp" "ff" corner)
+	alt_p_corner = if(corner=="fnsp" "ss" alt_p_corner)
+    modelFile( 
+	'("/opt/ei/DK/tsmc/oa180/mini018BCDG2/216A/models/spectre/c018bcd_gen2_v1d6_usage.scs" "pre_simu" "tt_lib" "ss_lib" "ff_lib" "fs_lib" "sf_lib" "mc_lib" "mismatch_lib")
+	'("/opt/ei/DK/tsmc/oa180/mini018BCDG2/216A/models/spectre/c018bcd_gen2_v1d6.scs" "stat_noise")
+	list("/opt/ei/DK/tsmc/oa180/mini018BCDG2/216A/models/spectre/c018bcd_gen2_v1d6.scs" corner)
+	)
+)
+
+procedure( sampleOutputs()
+	Out1 = value(v("Q1") transientSimTime)>Vmid
+	Out2 = value(v("Q2") transientSimTime)>Vmid
+	Out3 = value(v("Q3") transientSimTime)>Vmid
+	Out4 = value(v("Q4") transientSimTime)>Vmid
+	Out5 = value(v("Q5") transientSimTime)>Vmid
+)
+
+procedure( countOutputs()
+	/*Binary */
+	outcode = 0
+	if( Out1 outcode=outcode+1)
+	if( Out2 outcode=outcode+2)
+	if( Out3 outcode=outcode+4)
+	if( Out4 outcode=outcode+8)
+	if( Out5 outcode=outcode+16)
+)
+
+procedure( initializeSweep( corner)
+	ignoreError = 1
+	k = 0
+	MissingThermometer = 0
+	nonMonotonicity = 0
+	energy = 0.0
+	energy_AUX = 0.0
+	energy_COARSE = 0.0
+	energy_FINE = 0.0
+	energy_RGEN = 0.0
+	energy_TA = 0.0
+	total_energy = 0.0
+	total_energy_count = 0
+	old_outcode = 0
+	lastchange_delay = 0.0
+	missingCode = 0
+	min_delay = 1.0
+	max_delay = 0.0
+	sum_delay = 0.0
+	delay_count = 0
+	outcode = 0
+	
+	fprintf( fout "%s corner\nDelay\tOutput\n" corner)
+	fprintf( flog "%s corner\nDelay\tOutput\tEnergy\n" corner)
+	
+)
+
+procedure( doRun()
+	delay = k * timeStep + startDelay
+	desVar( "delay" delay)
+	desVar( "del" delay)
+	run()
+	selectResults('tran)
+
+
+	energy = abs( integ( i( "/I1/VDD" ),0.0,transientSimTime) ) * Vdd
+
+	/* Read all the outputs and put them in Out1, Out2 ... Out31 */
+	sampleOutputs()
+
+	/* Generate the outputvalue and put it in outcode */
+	countOutputs()
+
+
+	/* Sum the energy over all runs + count (to calculate the average energy) */
+	total_energy = total_energy + energy
+	total_energy_count++
+
+	/* Reset warnings */
+	nonMonotonicity = 0
+	missingCode = 0
+
+	/* Step change */
+	if( (outcode > old_outcode) then
+
+		/* Delay step, save delay time */
+		this_delay = delay - lastchange_delay
+		delays[outcode-1] = delay
+
+		/* Check for missing codes, if so set missingCode to 1 */
+		if( (outcode > (old_outcode + 1)) then
+			missingCode = 1
+		)
+
+		/* If the outcode > 1 then we can use the delay step to update DNL finding
+		   And to find the average delay (resolution) */
+		if( (outcode > 1) then
+			min_delay = if( (this_delay < min_delay) this_delay min_delay)
+			max_delay = if( (this_delay > max_delay) this_delay max_delay)
+			sum_delay = sum_delay + this_delay
+			delay_count++
+		)			
+
+		/* Print the step value and time to the output */
+		fprintf( fout "%g\t%d\n" delay outcode)
+
+		/* Remember the lastchange_delay to be able to find 
+           the delay step for the nex one */
+		lastchange_delay = delay
+	)
+
+	/* Check for non-monotonicity */
+	if( (outcode < old_outcode) then
+		nonMonotonicity = 1
+	)
+
+	if( (missingCode == 1) then
+		printf("WARNING - Missing code in output code at %g\n" delay)
+		fprintf( fout "WARNING - Missing code in output code at %g\n" delay)
+	)
+	
+	if( (nonMonotonicity == 1) then
+		printf("WARNING - Non-monotonous output code at %g\n" delay)
+		fprintf( fout "WARNING - Non-monotonous output code at %g\n" delay)
+	)
+
+	old_outcode = outcode
+
+	/* Update the log */
+	fprintf( flog "%g\t%d\t%g\t%g\t%g\t%g\t%g\t%g\n" delay outcode energy energy_AUX energy_COARSE energy_FINE energy_RGEN energy_TA)
+
+	/* Print status update to sumulation window */
+	printf("===================================================================\n")
+	printf("Outcode = %d\t\tDelay = %g\t\tEnergy = %g\t\tCorner = %s\n" outcode delay energy corner)
+	printf("===================================================================\n")
+	/* increment the loop variable */
+	++k
+)
+
+procedure( ok()
+	((missingCode+nonMonotonicity)==0 || ignoreError)
+)
+
+procedure( calcINL()
+	early = 0.0
+	late = 0.0
+
+	printf("passed early late init\n")
+	printf("%g\n" delays[0])
+
+	for( k 1 (codeLimit-1)
+		printf("INL iteration %d \t %g\n" k delays[k])
+
+		cur_offset = delays[k] - delays[0] - k*resolution
+		
+		if( (cur_offset>late) then late=cur_offset)
+		if( (cur_offset<early) then early=cur_offset)
+		
+	)
+
+	(late - early)/(2*resolution)
+)	
+	
+
+procedure( generateOutputs()
+	fprintf( fout "Simulation step_size\t%g\n" timeStep)
+	fprintf( fout "Transient simulation time\t%g\n" transientSimTime)
+
+	resolution = sum_delay / delay_count
+	fprintf( fout "Resolution\t%g\n" resolution)
+	printf("Estimated resolution\t%g\n" resolution)
+
+	printf("okay next is DNL\n")
+
+	DNL = max( max_delay-resolution resolution-min_delay)/resolution
+	fprintf( fout "DNL\t%g\n" DNL)
+	printf("DNL\t%g\n" DNL)
+
+	printf("okay next is INL\n")
+
+	INL = calcINL()
+	fprintf( fout "INL\t%g\n" INL)
+	printf("INL\t%g\n" INL)
+
+	fprintf( fout "TDC Offset\t%g\n" delays[0]-resolution)
+	printf("TDC Offset\t%g\n" delays[0]-resolution)
+
+	energy_per_conversion = total_energy/total_energy_count
+	fprintf( fout "Average Energy\t%g\n" energy_per_conversion)
+	printf("Average Energy\t%g\n" energy_per_conversion)
+
+	Q_DNL = -5*6.02+9.03+10*log10(1.0/12.0 + DNL*DNL/(2*3.2*3.2))
+	THD = INL*INL/1024.0
+	SINAD = -10.0*log10(10.0**(Q_DNL/10) + THD)
+	ENOB = (SINAD - 1.76) / 6.02
+	fprintf( fout "ENOB\t%g\n" ENOB)
+	FoM = energy_per_conversion / (2**ENOB)
+	fprintf( fout "FoM\t%g\n" FoM)
+)
+	
+	
+	
+
+/* Last setups */
+analysis( 'tran ?stop transientSimTime ?maxstep "1n")
+Vmid = Vdd/2.0
+declare( delays[31] )
+
+/* Turbo option */
+option(	'nthreads  "4" 
+	'multithread  "on" 
+)
+option( ?categ 'turboOpts	'uniMode  "APS" 
+)	
+
+
+/* Run the actual testbench */
+foreach( corner corners
+	loadlibs( corner)
+	
+	initializeSweep( corner)
+
+	while( (outcode < codeLimit)
+
+		if( ok() doRun() outcode = codeLimit)
+	)
+	/* if we get here, outcode should be 31, and/or ok() should be nil, MB */
+	if( ok() then
+		/* to get the energy right, continue simulating on the highest platform for a bit */
+		printf("Reached codeLimit, doing some more iterations for energy...\n")
+		j = k
+		for( k j (j+j/codeLimit+5)
+			if( ok() then
+				doRun()
+			)
+		)	
+	)
+
+	if( ok() then	
+			printf("Generating outputs...\n")
+			generateOutputs()
+		else
+			fprintf( fout "Errors occurred\n")
+			printf("Errors occurred\n")
+	)
+	
+	fprintf( fout "\n\n")
+	fprintf( flog "\n\n")
+)
+
+close( flog)
+close( fout)
+
+exit

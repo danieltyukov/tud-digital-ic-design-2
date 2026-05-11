@@ -1,0 +1,16 @@
+#
+# Edit Lock-Stake file. CAUTION: Please do not change.
+#
+# Information about current Edit Lock Owner.
+#
+LockStakeVersion               1.1
+LoginName                      bprabowo
+HostName                       ee4610.ewi.tudelft.nl
+ProcessIdentifier              101370
+ProcessCreationTime_UTC        1616949104
+ProcessCreationTime_Readable   Sun Mar 28 18:31:44 2021 CEST
+AppIdentifier                  OA File System Design Manager
+OSType                         unix
+ReasonForPlacingEditLock       OpenAccess edit lock
+FilePathUsedToEditLock         /home/bprabowo/tsmcBCD/Testbench/TDC_in_tb/schematic/sch.oa.cdslck
+TimeEditLocked                 Sun Mar 28 18:32:04 2021 CEST
