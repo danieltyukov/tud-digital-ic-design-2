@@ -9,23 +9,37 @@ moving on. Each phase ends with a "sign off when" criterion.
 - `launch-cadence.sh` opens Virtuoso on `ee4615.ewi.tudelft.nl`.
 - `tsmcBCD/` sshfs-mounted into this repo so we can git-track designs.
 
-## Phase 1 — primitive cells
+## Phase 1 — cells (reuse first, build only what's missing)
 
-Build inside a new library `tdc_2d_vernier` (use `register-library.sh tdc_2d_vernier` after the lib exists on the server). All cells use `nmos2v`/`pmos2v` from `tsmc18`.
+> Detailed click-by-click in [`08-build-test-runbook.md`](08-build-test-runbook.md).
 
-| Cell                | What                                                     |
-|---------------------|----------------------------------------------------------|
-| `inv_min`           | Min-sized CMOS inverter ($W_n \approx 220\,\text{nm}$, $W_p \approx 440\,\text{nm}$) |
-| `inv_2x`, `inv_3x`  | Scaled drivers for fan-out                                |
-| `nand2`, `nor2`     | For arbiter latch + OR-tree                              |
-| `delay_tau1`        | Inverter pair, lightly capped, sets $\tau_1$             |
-| `delay_tau2`        | Inverter pair, less capped, sets $\tau_2$ ($\tau_2 < \tau_1$) |
-| `arbiter_dff`       | Sense-amp style D-FF with async reset                    |
-| `tree_or4`          | 4-input OR for reducing diagonal levels                  |
+Two libraries instead of one — **don't redraw the inverters**:
 
-**Sign off:** every cell DC-sweep + transient simulated, sized to give the
-target $\tau_1 \approx 60\,\text{ps}$ and $\tau_2 \approx 45\,\text{ps}$ in
-TT @ $27^\circ\text{C}$.
+- **Reuse `Testbench`** for the inverters: `Inv`, `Inv_2x`, `Inv_3x`, `Inv_5x`
+  are hand-built CMOS at the unit $W_p/W_n = 440/220\,\text{nm}$,
+  $L=180\,\text{nm}$ (see [`../tesbench-pics/testbench-schematics-extracted.md`](../tesbench-pics/testbench-schematics-extracted.md)).
+  Instantiate them; they are *not* `tsmc18` digital std-cells.
+- **Build in our `tdc_2d_vernier`** (`register-library.sh tdc_2d_vernier`) only
+  the cells the library lacks. All custom cells use `nmos2v`/`pmos2v`.
+
+| Cell             | Build / reuse        | What |
+|------------------|----------------------|------|
+| `Inv`,`Inv_2x`,`Inv_3x`,`Inv_5x` | **reuse Testbench** | delay-tap inverters, clock/output buffers |
+| `srlatch`        | **build** (keystone) | symmetric SR-latch time comparator (cross-coupled `nand2`, paper Fig. 8) + async RESET |
+| `delay_tau1`     | **build**            | 2× reused `Inv` + small MOS-cap/fan-out load → $\tau_1\approx60\,\text{ps}$, non-inverting |
+| `delay_tau2`     | **build**            | identical topology, lighter load → $\tau_2\approx45\,\text{ps}$ |
+| `nand2`,`nor2`   | **build**            | latch + diagonal OR-tree gates |
+| `or_tree`        | **build**            | balanced OR reduction per diagonal level |
+| `tdc_core`       | **build**            | 2 delay lines + arbiter grid + OR-tree; **pins identical to `td`** |
+
+`tdc_core` carries the exact `td` pin contract (`RESET/START/STOP`, `VDD/GND`,
+`q1..q32`; `q1..q31` thermometer, `q32` spare) and is dropped into the `TDC`
+wrapper by **re-pointing instance `I13` (`td` → `tdc_core`)**, keeping the
+supply ammeters (energy node `/I1/VDD`) and the provided testbench intact.
+
+**Sign off:** `srlatch`, `delay_tau1`, `delay_tau2` each DC + transient + Monte-
+Carlo simulated; $\tau_1\approx60$, $\tau_2\approx45\,\text{ps}$ in TT@27 °C and
+$\tau_2>0$ in FF@−40 °C.
 
 ## Phase 2 — single Vernier row (1-D sanity check)
 

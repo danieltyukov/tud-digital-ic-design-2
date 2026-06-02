@@ -15,6 +15,8 @@
 | `04-implementation-plan.md`   | What we are building, in order, and the open questions      |
 | `05-deliverables.md`          | Submission checklist + report/presentation structure        |
 | `06-references.md`            | Papers and book chapters that anchor the design             |
+| `07-paper-2d-vernier-design-notes.md` | What to copy/adapt/skip from the Vercesi 2010 JSSC paper |
+| `08-build-test-runbook.md`    | **Step-by-step fast path**: build & test the TDC, phase by phase |
 
 ## Deadlines
 

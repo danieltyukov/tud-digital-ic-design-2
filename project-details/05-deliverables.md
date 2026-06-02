@@ -2,8 +2,8 @@
 
 ## Cadence design submission
 
-- [ ] Library `tdc_2d_vernier` exported, including all custom cells (no `tsmc18` digital, no `analogLib` macros for the TDC core).
-- [ ] `TDC` cell in Testbench replaced with our top-level TDC symbol.
+- [ ] Library `tdc_2d_vernier` exported, including all custom cells (`srlatch`, `delay_tau1/2`, `nand2`, `nor2`, `or_tree`, `tdc_core`). Inverters are **reused from the provided `Testbench` library** (hand-built CMOS, not `tsmc18` digital). No `analogLib` macros in the TDC core — realize delay loading with MOS-caps / fan-out, not an ideal `cap`.
+- [ ] `TDC` wrapper's `I13` instance **re-pointed** from `td` to our `tdc_core` (the wrapper — with its supply ammeters `/I1/VDD` and `q32` termination — is kept, *not* replaced). `tdc_core` matches the `td` pin contract (`q1..q31` thermometer, `q32` spare).
 - [ ] OCEAN runs (`results_tdc_therm.csv` + log) for all 5 corners × 3 temperatures attached.
 - [ ] Every schematic and symbol has explicit `VDD` / `GND` pins (no global nets in the TDC).
 
