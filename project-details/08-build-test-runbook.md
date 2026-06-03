@@ -76,7 +76,20 @@ The paper designs the time comparator before anything else, because its offset
 and jitter set the floor for the whole TDC ([`07`](07-paper-2d-vernier-design-notes.md) §2.1).
 
 **Build**
-- `nand2`, `nor2` from `nmos2v`/`pmos2v` (unit 440/220 nm, draw symmetrically).
+- `nand2`, `nor2` — **transistor-level** cells from `nmos2v`/`pmos2v` (NOT made
+  from inverters; a gate is its own 4-T topology). Tip: copy a `Testbench/Inv`
+  schematic as a *drawing canvas* (it has the `VDD`/`GND` pins + one P + one N),
+  then add the 2nd transistor and re-wire. All `L=180\,\text{n}`:
+  - `nand2`: PMOS ×2 **parallel** ($W_p=440$ n each); NMOS ×2 **series**
+    ($W_n=440$ n each — 2× to offset the stack).
+  - `nor2`: PMOS ×2 **series** ($W_p=880$ n each — 2×); NMOS ×2 **parallel**
+    ($W_n=220$ n each).
+  - *(Fast first cut: unit 440/220 everywhere works, just slightly skewed.)*
+  - **Where each goes:** `nand2` → the `srlatch` (comparator is NAND-only).
+    `nor2` → the **diagonal OR-tree** only (`q_k = OR` of a diagonal = `nor2`+inv).
+    *(NOR isn't strictly required — `OR = NAND(\bar a,\bar b)` by De Morgan, so a
+    NAND-only tree is possible — but `nor2`+inv keeps the OR-tree tidy with
+    fewer stray inversions to skew-match across diagonals.)*
 - `srlatch` = two cross-coupled `nand2` (symmetric mutual-exclusion / SR latch),
   inputs `S` = Start-tap, `R` = Stop-tap (active-high rising edges), outputs
   `Q`,`Qb`. Add an **async `RESET`** that forces `Q=0` (an `nmos2v` pulldown on
@@ -260,3 +273,37 @@ Phase 8  energy/FoM/pack ... 1 d
 testbench — build only `srlatch`, `delay_tau*`, and the grid; (2) get `srlatch`
 right *before* anything else; (3) validate on the 1-D row before committing to
 the 8×8 grid.
+
+---
+
+## Appendix A — Tuning knobs (after assembly)
+
+Turn these in Phases 6–7 to hit spec. **$t_0=\tau_1-\tau_2$ is a small
+difference of two large delays → the most sensitive knob:** keep `delay_tau1`
+and `delay_tau2` the *same topology, differing only in load*, tune the two
+absolute delays loosely and the *difference* precisely with the trim caps.
+
+**Primary**
+| Knob | Where | Controls | How |
+|---|---|---|---|
+| $t_0=\tau_1-\tau_2$ | load *difference* `delay_tau1`↔`delay_tau2` | resolution (LSB) | coarse: MOS-cap/fan-out; fine: switchable trim caps |
+| absolute $\tau$ | tap inverter (`Inv`/`Inv_2x`) + load | speed, jitter, power | stronger tap → faster, lower jitter, more power |
+| grid $N_X\times N_Y$ | # stages line X / Y | range (# codes) | extend range by adding **line-X stages only** |
+| `srlatch` input/feedback $W$ | arbiter device sizing | DNL (offset) + dead-zone | up-size inputs → lower offset; stronger feedback → smaller dead-zone |
+
+**Secondary (linearity):** dummy-comparator load matching (corner cells);
+OR-tree depth balancing (high-code INL); RESET fan-out balancing; routing/OR
+mapping choice. **Global:** `supply`/VDD (delays scale, $P\propto V^2$),
+channel $L$ (normally pinned 180 n). **Testbench/ADE:** `delay`+`timeStep`,
+`corners`, temperature, `codeLimit=31`, `transientSimTime`, `delayscale`, RESET width.
+
+**Symptom → knob**
+| Symptom | Knob |
+|---|---|
+| LSB off-target | $\tau_1/\tau_2$ load difference → trim caps |
+| $\tau_2\le0$ in FF/−40 °C | more $\tau_1-\tau_2$ headroom; trim; resize `delay_tau2` |
+| missing codes / DNL < −1 LSB | up-size `srlatch` inputs; check dummy loading + matching |
+| INL grows at high codes | balance OR-tree; per-corner trim |
+| dead-zone too wide | stronger latch feedback; sharper edges; more settle time |
+| power / FoM too high | weaker taps; fewer stages; fewer engaged trim caps; lower supply |
+| $\sum W$ too high | smaller latch/inverter $W$; fewer dummies |
