@@ -26,11 +26,10 @@ Two libraries instead of one — **don't redraw the inverters**:
 |------------------|----------------------|------|
 | `Inv`,`Inv_2x`,`Inv_3x`,`Inv_5x` | **reuse Testbench** | delay-tap inverters, clock/output buffers |
 | `srlatch`        | **build** (keystone) | symmetric SR-latch time comparator (cross-coupled `nand2`, paper Fig. 8) + async RESET |
-| `delay_tau1`     | **build**            | 2× reused `Inv` + small MOS-cap/fan-out load → $\tau_1\approx60\,\text{ps}$, non-inverting |
-| `delay_tau2`     | **build**            | identical topology, lighter load → $\tau_2\approx45\,\text{ps}$ |
-| `nand2`,`nor2`   | **build**            | latch + diagonal OR-tree gates |
-| `or_tree`        | **build**            | balanced OR reduction per diagonal level |
-| `tdc_core`       | **build**            | 2 delay lines + arbiter grid + OR-tree; **pins identical to `td`** |
+| `delay_tau1`     | **build**            | 2× reused `Inv` + node-A load + **strong output driver**; $\tau_1=k\,t_0$ sized **under replica column load** (TA 3 Jun) |
+| `delay_tau2`     | **build**            | identical topology, lighter load → $\tau_2=(k-1)\,t_0$ |
+| `nand2`          | **build**            | latch gate (`nor2`/`or_tree` **dropped** — bijective routing, no OR-tree) |
+| `tdc_core`       | **build**            | 2 delay lines + arbiter grid + direct output routing; **pins identical to `td`** |
 
 `tdc_core` carries the exact `td` pin contract (`RESET/START/STOP`, `VDD/GND`,
 `q1..q32`; `q1..q31` thermometer, `q32` spare) and is dropped into the `TDC`
@@ -55,19 +54,23 @@ This catches matching / arbiter problems early, on a much smaller circuit.
 
 ## Phase 3 — 2-D grid
 
-Replicate the 1-D row into a full $8 \times 8$ grid of arbiter cells. Add
-the diagonal OR-tree that maps the 2-D occupancy pattern into 31
-thermometer outputs.
+Build the grid from the **bijective routing table** ($N_Y=k$ Stop stages,
+$N_X$ Start stages; one `srlatch` per level $m$ at
+$y_m=((m-1)\bmod k)+1$, $x_m=(m+(k-1)y_m)/k$ — see
+[`08-build-test-runbook.md`](08-build-test-runbook.md) Phase 4a). Route each
+latch output **directly** to its thermometer pin — **no OR-tree** (TA session
+3 Jun 2026). Add dummy latch-input loads so every tap carries equal fan-out.
 
 **Sign off:** TB_TDC sim runs in TT, delay sweep covers all $32$ codes.
 
 ## Phase 4 — corners + temperature
 
-Use OCEAN sweep with $\texttt{corners} = \;\texttt{`("tt" "ss" "ff" "snfp" "fnsp")}$
-and temperature sweep $T \in \{-40, 27, 150\}^\circ\text{C}$. Resize delay
-cells if $\tau_2$ goes negative in FF / $-40^\circ\text{C}$.
+Use OCEAN sweep with $\texttt{corners} = \;\texttt{`("tt" "ss" "ff" "snfp" "fnsp")}$.
+**TA session 3 Jun 2026: temperature sweep possibly not required (corners only)
+— confirm before running** $T \in \{-40, 27, 150\}^\circ\text{C}$. Resize delay
+cells if $\tau_2$ goes negative in the fast corner.
 
-**Sign off:** all five corners × three temperatures pass —
+**Sign off:** all required corner (× temperature, if confirmed) runs pass —
 no missing codes ($\mathrm{DNL}[k] > -1\,\text{LSB}\;\forall k$), LSB stays
 under $20\,\text{ps}$.
 
@@ -95,7 +98,9 @@ Deadline: presentation 8–12 June 2026, report + design 15 June 2026.
    Mitigation: size with $> 5\,\text{ps}$ headroom over corners.
 2. **Arbiter metastability** at the smallest $\Delta t$: characterise the
    "dead zone" and report it honestly.
-3. **OR-tree skew** makes high-numbered codes lag low-numbered ones:
-   balance the depths or buffer.
+3. **Per-tap fan-out loading**: every tap drives a column of latch inputs +
+   the next delay stage. Sizing the delay without that replica load gives a
+   fictitious $\tau$ — the other 2-D group lost their 45/60 ps target to this
+   and ended at a 9×11 matrix with ~32× output drivers.
 4. **Crosstalk** between rows / columns when 64 wires run in parallel
    (schematic-level — even without layout, signal integrity affects sim).

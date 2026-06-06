@@ -25,14 +25,26 @@
 | `Inv`,`Inv_2x`,`Inv_3x`,`Inv_5x` | **reuse** `Testbench` | delay-tap + buffer inverters |
 | `TB_TDC`, `TDC_in`, `TDC_out`, `POWER`, `TDC` wrapper | **reuse** `Testbench` | full test harness — we don't build a testbench |
 | OCEAN scripts + `run-testbench.sh` | **reuse** | DNL/INL/energy sweep already written |
-| `nand2`, `nor2` | **build** | latch + OR-tree primitives |
+| `nand2` | **build** | latch primitive (`nor2`/`or_tree` **dropped** — see TA update) |
 | `srlatch` (arbiter, +RESET) | **build** | the keystone — design first |
-| `delay_tau1`, `delay_tau2` | **build** | 2× `Inv` + load; only the load differs |
-| `or_tree` | **build** | per-diagonal OR reduction |
-| `tdc_core` | **build** | delay lines + arbiter grid + OR-tree |
+| `delay_tau1`, `delay_tau2` | **build** | 2× `Inv` + load **+ strong output driver**; sized under the real column load |
+| `tdc_core` | **build** | delay lines + arbiter grid + **direct output routing** (no OR-tree) |
 
 **Only 3 conceptually-new things:** the arbiter, the delay element, and the
-grid+OR-tree assembly. Everything else is reuse.
+grid + routing assembly. Everything else is reuse.
+
+> ### TA-session update (3 Jun 2026) — baked into this runbook
+> 1. **No OR-tree.** The k:(k−1) routing function is bijective — each
+>    thermometer bit is **one** latch output wired straight to its `q` pin
+>    (paper Fig. 5 does the same). `nor2`/`or_tree` dropped from the BOM.
+> 2. **Delay-line loading is the hard problem.** Each tap drives several
+>    `srlatch` inputs + the next delay stage. The other 2-D Vernier group could
+>    not reach 45/60 ps under that load → longer delays, ~32× output driver,
+>    9×11 matrix. Size delays **only under replica load**.
+> 3. **Sizing order is fixed:** `srlatch` C_in → per-tap load budget → delay
+>    sizing → k → grid shape. The grid is a *consequence* of achievable τ.
+> 4. **Temperature sweep possibly not required** (corners only) — confirm with
+>    the TA before running the full 15-point matrix.
 
 ---
 
@@ -86,10 +98,10 @@ and jitter set the floor for the whole TDC ([`07`](07-paper-2d-vernier-design-no
     ($W_n=220$ n each).
   - *(Fast first cut: unit 440/220 everywhere works, just slightly skewed.)*
   - **Where each goes:** `nand2` → the `srlatch` (comparator is NAND-only).
-    `nor2` → the **diagonal OR-tree** only (`q_k = OR` of a diagonal = `nor2`+inv).
-    *(NOR isn't strictly required — `OR = NAND(\bar a,\bar b)` by De Morgan, so a
-    NAND-only tree is possible — but `nor2`+inv keeps the OR-tree tidy with
-    fewer stray inversions to skew-match across diagonals.)*
+    `nor2` → **no longer needed**: the OR-tree was dropped after the TA session
+    (3 Jun 2026) — the bijective routing table gives one latch per thermometer
+    bit, wired directly out. Keep the `nor2` recipe above only as reference in
+    case bubble-correction logic is ever added.
 - `srlatch` = two cross-coupled `nand2` (symmetric mutual-exclusion / SR latch),
   inputs `S` = Start-tap, `R` = Stop-tap (active-high rising edges), outputs
   `Q`,`Qb`. Add an **async `RESET`** that forces `Q=0` (an `nmos2v` pulldown on
@@ -118,28 +130,44 @@ Both are the **same cell topology** — two reused `Inv` in series (non-invertin
 mandatory because the SR latch acts on rising edges, [`07`](07-paper-2d-vernier-design-notes.md) §2.2).
 They differ **only in the load** on the internal node, so they track over PVT.
 
+> ⚠️ **Loading reality (TA session, 3 Jun 2026).** Every tap drives
+> $n_\text{latch}$ `srlatch` inputs **+ the next delay stage + wiring** — not
+> one gate. Build the load budget first:
+> $C_\text{tap}\approx n_\text{latch}\,C_{in,SR}+C_{in,\text{next}}+C_\text{wire}$,
+> with $C_{in,SR}$ measured from the finished Phase-1 latch. The other 2-D
+> Vernier group could not reach 45/60 ps under this load and moved to longer
+> delays + a ~32× output driver + a 9×11 matrix. If 60/45 ps ($k{=}4$) is
+> unreachable, **keep $\tau_1=k\,t_0$, $\tau_2=(k-1)\,t_0$ and step $k$ up**
+> (e.g. $k{=}9$: 135/120 ps at $t_0=15$ ps) — the latch count stays ~32, only
+> line lengths change (Phase 4a).
+
 **Build**
-- `delay_tau1`: `in → Inv → (node A) → Inv → out`, plus a small load on node A.
-  Realize the load **without analogLib**: a MOS-cap (`nmos2v` with S/D/B tied to
-  GND, gate on node A) or extra dummy `Inv` inputs hung on node A. Size for
-  $\tau_1\approx60\,\text{ps}$.
-- `delay_tau2`: identical, lighter load → $\tau_2\approx45\,\text{ps}$.
+- `delay_tau1`: `in → Inv → (node A, delay-setting load) → strong output driver
+  (`Inv_5x`/`Inv_20x`-class — the paper's inv2 is exactly this) → out`.
+  Realize the node-A load **without analogLib**: a MOS-cap (`nmos2v` with S/D/B
+  tied to GND, gate on node A) or dummy `Inv` inputs. Target $\tau_1=k\,t_0$
+  **under replica column load**.
+- `delay_tau2`: identical, lighter node-A load → $\tau_2=(k-1)\,t_0$.
 - Add **2–3 switchable MOS-caps** (each an `nmos2v` cap in series with an
   `nmos2v` switch) on node A so you can re-center $t_0$ per corner in simulation
   — this is the cheap stand-in for the paper's DLL (we do **not** build a DLL).
 - Pins: `in`,`out`,`VDD`,`GND` (+ `trim<0:2>` if switchable). Symbols for both.
 
 **Test**
-1. **Delay:** transient, measure 50 %–50 % `in→out` rising-edge delay. Tune loads
-   to $\tau_1=4t_0$, $\tau_2=3t_0$ (e.g. 60/45 ps) in TT@27 °C, so
-   $t_0=\tau_1-\tau_2=15\,\text{ps}=\gcd(\tau_1,\tau_2)$ ([`07`](07-paper-2d-vernier-design-notes.md) §1.2).
+1. **Delay (under replica load):** transient with the tap output driving the
+   *real* fan-out (replica column of `srlatch` inputs + next delay input) — a
+   standalone measurement is fiction. Measure 50 %–50 % `in→out` rising-edge
+   delay; tune to $\tau_1=k\,t_0$, $\tau_2=(k-1)\,t_0$ with
+   $t_0=\tau_1-\tau_2=\gcd(\tau_1,\tau_2)$ ([`07`](07-paper-2d-vernier-design-notes.md) §1.2) —
+   $k{=}4$ (60/45 ps) if reachable, else the smallest $k$ that is.
 2. **Corner safety:** sweep $\{TT,SS,FF,SF,FS\}\times\{-40,27,150\}$ °C; confirm
    **$\tau_2>0$ and $\tau_1-\tau_2>0$ in FF@−40 °C** (the corner that collapses
    the LSB). Resize with ≥5 ps headroom or use the trim caps.
 3. **Edge quality:** check the `out` rise time into one `srlatch` input cap is
    sharp (the 2nd inverter's job).
 
-**Sign-off:** $\tau_1,\tau_2$ on target in TT; $\tau_1-\tau_2>0$ in all 15 corners.
+**Sign-off:** $\tau_1,\tau_2$ on target **under replica load** in TT;
+$\tau_1-\tau_2>0$ in all corners (× temps, if the TA confirms temperature is required).
 
 ---
 
@@ -151,6 +179,8 @@ Catch matching/arbiter bugs on a tiny circuit, per [`04`](04-implementation-plan
 - Start line: 8× `delay_tau1` in series, tap after each stage.
 - Stop line: 8× `delay_tau2` in series, tap after each stage.
 - 8 `srlatch`, arbiter *k* compares Start-tap *k* vs Stop-tap *k*.
+- **Load every tap with the same replica fan-out the 2-D grid will present**
+  (dummy latch inputs) — otherwise this row validates a τ the real grid won't have.
 - Drive both lines from two `vpulse` with a controllable skew `delay`; wire
   `RESET` to all latches.
 
@@ -167,22 +197,27 @@ Catch matching/arbiter bugs on a tiny circuit, per [`04`](04-implementation-plan
 
 Now the real core. Build the routing table on paper first, then wire it.
 
-**4a. Routing table (paper-and-pencil, 20 min)**
-- Choose grid: start **8×8** (triangular $j\le i$, 36 cells, 31 used). Optionally
-  asymmetric (more X stages) if diagonal-crossing DNL shows up later ([`07`](07-paper-2d-vernier-design-notes.md) §7).
-- For every cell $(i,j)$ compute $\Delta t_{i,j}=i\,\tau_1-j\,\tau_2=(4i-3j)\,t_0$.
-- Sort the reachable $\Delta t$ into the 31 ordered levels. **Cells sharing a
-  level (diagonal $i-j=k$) OR together into thermometer bit $q_k$** ([`01`](01-architecture.md) §3).
-  This table *is* your OR-tree wiring — keep it in the report.
+**4a. Routing table (paper-and-pencil, 20 min) — bijective, no OR-tree**
+- With $\tau_1=k\,t_0$, $\tau_2=(k-1)\,t_0$, level $m$ ($1\le m\le32$) maps to
+  **exactly one** grid cell (inverting Vercesi eq. (3)):
+  $$y_m=\big((m-1)\bmod k\big)+1,\qquad x_m=\frac{m+(k-1)\,y_m}{k}.$$
+- Line lengths *follow* from $k$: $N_Y=k$, $N_X=\max_m x_m$. Examples:
+  $k{=}4$ → 4 Y-stages × ~11 X-stages; $k{=}9$ → 9×11 (the other group's
+  matrix — independent confirmation of this construction).
+- **Thermometer bit $q_m$ = the one latch at $(x_m,y_m)$, routed straight out.**
+  No OR-tree (TA session 3 Jun 2026; the paper's Fig. 5 likewise just orders the
+  flip-flop outputs). This table *is* the wiring — keep it in the report.
 
 **4b. Build `tdc_core`**
 - Start delay line (X): chain of `delay_tau1`, tapped per stage.
 - Stop delay line (Y): chain of `delay_tau2`, tapped per stage.
-- Arbiter grid: one `srlatch` per used $(i,j)$; `S`←X-tap *i*, `R`←Y-tap *j*.
-- **Dummy comparators**: put `srlatch` (or matched input caps) on the unused
-  corner cells so **every tap sees identical load** ([`07`](07-paper-2d-vernier-design-notes.md) §2.3).
-- OR-tree: per diagonal, `or_tree` (balanced `nor2`+inv) → `q1..q31`.
-  Tie **`q32` to a fixed level** (spare; wrapper terminates it).
+- Arbiter grid: one `srlatch` per used $(x_m,y_m)$; `S`←X-tap $x_m$, `R`←Y-tap $y_m$.
+- **Dummy loads**: add `srlatch` input replicas (or matched MOS-caps) so **every
+  tap carries the same fan-out** — the per-tap latch count varies across the
+  lines, and unequal loading bends τ ([`07`](07-paper-2d-vernier-design-notes.md) §2.3).
+- Output routing: latch $(x_m,y_m)$ `Q` → (an `Inv_2x` buffer pair if needed for
+  the TB load) → pin `q_m`; level-32's latch → `q32` (wrapper terminates it).
+  Match the per-output buffering so no `q` bit lags another.
 - Reset distribution: buffer `RESET` (reuse `Inv_3x`/`Inv_5x`) to every latch;
   balance the fan-out so all latches clear together.
 - **Pins must equal `td` exactly:** `RESET`,`START`,`STOP`,`VDD`,`GND`,`q1..q32`.
@@ -233,13 +268,18 @@ if you see a non-periodic bump, suspect input coupling, not the architecture
 
 ## Phase 7 — corners + temperature
 
-In the OCEAN script set `corners = ` `("tt" "ss" "ff" "snfp" "fnsp")` and sweep
-$T\in\{-40,27,150\}$ °C (5×3 = 15 runs). Re-run `./run-testbench.sh thermometer`.
+In the OCEAN script set `corners = ` `("tt" "ss" "ff" "snfp" "fnsp")`.
 
-- If $\tau_2$ collapses (FF@−40 °C): bump the trim caps or resize `delay_tau2`.
-- Keep every run's CSV/log for the report (15 DNL + 15 INL traces).
+> **TA session 3 Jun 2026: the temperature sweep is possibly NOT required —
+> corners-only may suffice. Confirm before burning sim time.**
+> Minimum run: 5 corners @ 27 °C. Full run (only if confirmed required):
+> × $T\in\{-40,27,150\}$ °C = 15 runs.
 
-**Sign-off:** all 15 corner×temp runs pass — no missing codes, LSB < 20 ps.
+- If $\tau_2$ collapses (worst fast corner): bump the trim caps or resize `delay_tau2`.
+- Keep every run's CSV/log for the report (one DNL + INL trace per run).
+
+**Sign-off:** all required corner (× temp, if confirmed) runs pass — no missing
+codes, LSB < 20 ps.
 
 ---
 
@@ -262,7 +302,7 @@ Phase 0  env+lib ........... 0.5 d   ← one-time
 Phase 1  srlatch ........... 1–2 d   ← KEYSTONE, hardest; offset/MC sizing
 Phase 2  delay_tau1/2 ...... 1 d     ← reuse Inv, tune load
 Phase 3  1-D row ........... 0.5 d   ← cheap bug-catcher, don't skip
-Phase 4  2-D grid+OR-tree .. 1–2 d   ← routing table + wiring
+Phase 4  2-D grid+routing .. 1–2 d   ← bijective table + wiring
 Phase 5  integrate ......... 0.5 d   ← one instance swap
 Phase 6  DNL/INL (TT) ...... 0.5 d   ← provided script
 Phase 7  corners ........... 1 d     ← 15 runs, resize if FF fails
@@ -291,11 +331,13 @@ absolute delays loosely and the *difference* precisely with the trim caps.
 | grid $N_X\times N_Y$ | # stages line X / Y | range (# codes) | extend range by adding **line-X stages only** |
 | `srlatch` input/feedback $W$ | arbiter device sizing | DNL (offset) + dead-zone | up-size inputs → lower offset; stronger feedback → smaller dead-zone |
 
-**Secondary (linearity):** dummy-comparator load matching (corner cells);
-OR-tree depth balancing (high-code INL); RESET fan-out balancing; routing/OR
-mapping choice. **Global:** `supply`/VDD (delays scale, $P\propto V^2$),
-channel $L$ (normally pinned 180 n). **Testbench/ADE:** `delay`+`timeStep`,
-`corners`, temperature, `codeLimit=31`, `transientSimTime`, `delayscale`, RESET width.
+**Secondary (linearity):** per-tap fan-out equalisation (dummy latch-input
+loads — the per-tap latch count varies); matched per-output buffering across
+`q1..q31`; RESET fan-out balancing; output-driver strength in the delay taps
+(`Inv_5x`/`Inv_20x`-class). **Global:** `supply`/VDD (delays scale,
+$P\propto V^2$), channel $L$ (normally pinned 180 n). **Testbench/ADE:**
+`delay`+`timeStep`, `corners`, temperature (if required — see Phase 7),
+`codeLimit=31`, `transientSimTime`, `delayscale`, RESET width.
 
 **Symptom → knob**
 | Symptom | Knob |
@@ -303,7 +345,7 @@ channel $L$ (normally pinned 180 n). **Testbench/ADE:** `delay`+`timeStep`,
 | LSB off-target | $\tau_1/\tau_2$ load difference → trim caps |
 | $\tau_2\le0$ in FF/−40 °C | more $\tau_1-\tau_2$ headroom; trim; resize `delay_tau2` |
 | missing codes / DNL < −1 LSB | up-size `srlatch` inputs; check dummy loading + matching |
-| INL grows at high codes | balance OR-tree; per-corner trim |
+| INL grows at high codes | match per-output routing/buffers; equalise tap fan-out; per-corner trim |
 | dead-zone too wide | stronger latch feedback; sharper edges; more settle time |
 | power / FoM too high | weaker taps; fewer stages; fewer engaged trim caps; lower supply |
 | $\sum W$ too high | smaller latch/inverter $W$; fewer dummies |

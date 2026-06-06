@@ -14,10 +14,10 @@ what we must hit; "stretch" rows are bonuses or quality improvements.
 | Process               | TSMC 180 nm BCD (`tsmc18`, `nmos2v`/`pmos2v`)          |
 | Nominal $V_{DD}$      | $1.8\,\text{V}$                                        |
 | Corners               | $\{\text{TT}, \text{FF}, \text{SS}, \text{SF}, \text{FS}\}$ |
-| Temperature           | $-40^\circ\text{C}$ to $+150^\circ\text{C}$            |
+| Temperature           | $-40^\circ\text{C}$ to $+150^\circ\text{C}$ — *TA session 3 Jun 2026: possibly corners-only, no temp sweep; confirm* |
 | Standard cells        | **None** — every gate hand-built                       |
 | Inputs                | RESET ($40\,\text{ps}$ pulse), START, STOP — each via $3\times$ min-Inv |
-| Output loading        | $5\times$ min-inverter per $Q$-line                    |
+| Output loading        | $5\times$ min-inverter per $Q$-line *(actual TB schematic: $2\times$ `Inv_2x` + 1 fF — see `../tesbench-pics/testbench-schematics-extracted.md`)* |
 | Single ground         | One reference; $V_{DD}, V_{SS}$ built on top           |
 | Layout                | Not required — schematic + Spectre only                |
 | Simulator             | Cadence Spectre                                        |
@@ -31,9 +31,9 @@ what we must hit; "stretch" rows are bonuses or quality improvements.
 | Parameter              | Provisional choice    | Notes                                       |
 |------------------------|------------------------|---------------------------------------------|
 | LSB target $t_0$       | $\approx 15\,\text{ps}$ | Margin under the 20 ps cap                  |
-| $\tau_1$ (Start path)  | $\approx 60\,\text{ps}$ | Driven by inverter chain at $V_{DD} = 1.8\,\text{V}$ |
-| $\tau_2$ (Stop path)   | $\approx 45\,\text{ps}$ | Must stay $\tau_2 > 0$ across all corners   |
-| Grid size $N \times M$ | $8 \times 8$ ($36$ cells in triangle, $32$ used) | $\sqrt{2 \cdot 32} = 8$ per axis |
+| $\tau_1$ (Start path)  | $= k\,t_0$; 60 ps ($k{=}4$) **if reachable under column load** | TA 3 Jun 2026: each tap drives a column of latches + next stage; other 2-D group needed longer delays + ~32× driver |
+| $\tau_2$ (Stop path)   | $= (k-1)\,t_0$; 45 ps if $k{=}4$ holds | Must stay $\tau_2 > 0$ and $\tau_1-\tau_2>0$ across all corners |
+| Grid size              | $N_Y = k$, $N_X$ from the bijective routing table | $k{=}4$ → 4×~11; $k{=}9$ → 9×11 (other group). ~32 latches, **one per level, no OR-tree** |
 | Arbiter style          | Cross-coupled NAND or sense-amp DFF | Decide after metastability sim |
 | Delay-element style    | Current-starved inverter or capacitively-loaded inverter | Sets $\tau_1$ vs $\tau_2$ |
 | Reset distribution     | Async clear on every DFF, gated by $40\,\text{ps}$ RESET pulse | Aligned start state |

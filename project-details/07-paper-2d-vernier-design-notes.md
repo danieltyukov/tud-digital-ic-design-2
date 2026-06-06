@@ -106,6 +106,14 @@ a D-flip-flop:
   devices with a Monte-Carlo `mismatch` run** until $\sigma_\text{offset}\ll
   t_0$ (aim $<t_0/5$).
 
+- **Minimize the latch input capacitance.** The paper is explicit: "the input
+  capacitance of the time comparators has to be minimized since in a 2-D
+  Vernier **an entire line of comparators is connected to a single stage** of
+  the delay lines. This sets the required driving capability of the delay
+  element." Validated the hard way by the other EE4615 2-D group (TA session
+  3 Jun 2026): under real fan-out, 45/60 ps was unreachable → longer delays,
+  ~32× output drivers, 9×11 matrix.
+
 > **Our cells:** the EE4615 library has no latch — we build it from `nmos2v`/
 > `pmos2v`. The `01-architecture.md` "cross-coupled NAND or sense-amp DFF" lines
 > up; prefer the **SR latch** for the symmetry argument above.
@@ -140,11 +148,14 @@ Each tap is **two inverters in series** feeding a load capacitor at the
   exist only to give **every delay tap the same capacitive load** — otherwise
   edge cells run faster and break linearity. Replicate this: terminate unused
   taps with dummy latch input loads.
-- The flip-flop/latch outputs are **reordered by the routing function $p(x,y)$
-  into a thermometer register**. For us this is the **diagonal OR-tree**
-  ($Q_k=\bigvee_{i-j=k}\text{latch}_{ij}$) from `01-architecture.md` §3 → 31
-  thermometer outputs $Q_1..Q_{31}$ (which the testbench reads; see
-  [`../tesbench-pics/testbench-schematics-extracted.md`](../tesbench-pics/testbench-schematics-extracted.md)).
+- The flip-flop/latch outputs are **reordered by the routing function $p(x,y)$**
+  — in the paper this is *literally just wiring* (Fig. 5): one comparator per
+  quantization level, outputs ordered into the thermometer word. **No OR-tree.**
+  *(Correction, TA session 3 Jun 2026: our earlier diagonal-OR reading of this
+  was wrong — the k:(k−1) routing is bijective, so each $q_m$ is the single
+  latch at $y_m=((m-1)\bmod k)+1$, $x_m=(m+(k-1)y_m)/k$. See
+  `01-architecture.md` §3.)* The 31 outputs $q_1..q_{31}$ go to the testbench
+  ([`../tesbench-pics/testbench-schematics-extracted.md`](../tesbench-pics/testbench-schematics-extracted.md)).
 
 ---
 
@@ -210,7 +221,7 @@ Y's caps. The input network **interleaves acquire/calibrate** every cycle
 | $\tau_1$ (line X) | 55 ps | ≈ 60 ps ($=4t_0$) |
 | $\tau_2$ (line Y) | 50 ps | ≈ 45 ps ($=3t_0$) |
 | Ratio $k:(k-1)$ | 11 : 10 | **4 : 3** |
-| Stages | 19 (X), 11 (Y) | ~8 per axis ($N\approx\sqrt{2\cdot32}$) |
+| Stages | 19 (X), 11 (Y) | $N_Y=k$, $N_X$ from routing table ($k{=}4$ → 4×~11; other group: 9×11) |
 | Longest line | 1.045 ns (< 2× FS) | keep < 2× full scale |
 | Comparator | SR latch, $\sigma_\text{off}\approx0.74$ ps | SR latch, $\sigma_\text{off}\ll t_0$ |
 | Min inverter delay | 20 ps (worst PVT) | larger in 180 nm → Vernier still needed |
@@ -225,14 +236,16 @@ the empty **`td`** core (interface `RESET/START/STOP/VDD/GND → q1..q32`, see t
 testbench map):
 
 1. **Phase 1 cells** — build, in order the paper recommends:
-   `arbiter` = **SR latch** *first* (its offset/jitter set everything), then
-   `delay_tau1`/`delay_tau2` = **inverter-pair + fixed/lightly-switched load**
-   sized to $\tau_1{=}4t_0$, $\tau_2{=}3t_0$ in TT@27 °C, then the OR/NOR tree.
+   `arbiter` = **SR latch** *first* (its offset/jitter/input-cap set
+   everything), then `delay_tau1`/`delay_tau2` = **inverter-pair +
+   fixed/lightly-switched load + strong output driver**, sized to
+   $\tau_1{=}k\,t_0$, $\tau_2{=}(k{-}1)\,t_0$ **under replica column load**
+   ($k{=}4$ if reachable, else larger).
 2. **Phase 2 (1-D row)** — verify LSB $= \tau_1-\tau_2$ and that the SR latch
    resolves down near $t_0$ (characterise the **metastable "dead zone"**).
-3. **Phase 3 (2-D grid)** — add **dummy corner comparators** for equal loading;
-   wire the **diagonal OR-tree** to $q_1..q_{31}$; keep row/column nets apart
-   (crosstalk).
+3. **Phase 3 (2-D grid)** — add **dummy latch-input loads** so every tap sees
+   equal fan-out; route each latch output **directly** to its $q_m$ pin per the
+   bijective table (no OR-tree); keep row/column nets apart (crosstalk).
 4. **Phase 4 (corners)** — confirm $\tau_2>0$ and $t_0<20$ ps in **FF / −40 °C**
    (the corner most likely to collapse $\tau_1-\tau_2$); resize with headroom.
 5. **Report** — use the paper's INL-periodicity and the "shorter-lines ⇒
@@ -240,9 +253,10 @@ testbench map):
    input-network-crosstalk story to interpret any non-periodic INL bump.
 
 ## 7. Open questions this paper raises for us
-- **Square 8×8 vs asymmetric rectangle?** The paper favours an asymmetric plane
-  (extend only line X) to cut the longest line — worth trying if our square grid
-  shows diagonal-crossing DNL spikes.
+- ~~Square 8×8 vs asymmetric rectangle?~~ **Resolved (TA session 3 Jun 2026):**
+  the bijective routing fixes the shape — $N_Y=k$, $N_X$ from the table
+  ($k{=}4$ → 4×~11; $k{=}9$ → 9×11). The remaining choice is **$k$ itself**,
+  driven by the smallest $\tau$ the loaded delay element can hit.
 - **How many switchable cap codes** (if any) do we expose for per-corner
   re-centering, given we can't run a DLL in a pure schematic submission?
 - **Do we count TDC_in/TDC_out inverters in $\sum W$?** (already a TA question in

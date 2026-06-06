@@ -77,12 +77,19 @@ or 5-bit binary $Q_1..Q_5$), we map the active grid cells to a **1-D
 thermometer output** along the diagonal levels (each diagonal corresponds
 to one $\Delta t$ quantum):
 
-- Define $t_0 = \tau_1 - \tau_2$.
-- Group all grid cells $(i,j)$ with $i - j = k$ into "thermometer level $k$".
-- $Q_k = \bigvee_{i-j = k}\, \text{DFF}_{i,j}$ — the OR over all DFFs in level $k$.
+- Define $t_0 = \tau_1 - \tau_2$ and pick $\tau_1 = k\,t_0$, $\tau_2 = (k-1)\,t_0$.
+- In this family the routing function is **bijective** (Vercesi eqs. (3)–(4)):
+  level $m$ maps to exactly one cell
+  $$y_m = \big((m-1) \bmod k\big) + 1, \qquad x_m = \frac{m + (k-1)\,y_m}{k}.$$
+- $Q_m = \text{DFF}_{x_m,y_m}$ **directly — no OR-tree.** Each thermometer bit
+  is one arbiter output routed straight out (the paper's Fig. 5 does exactly
+  this: the flip-flop outputs are *ordered*, not combined).
 
-This OR-tree is the only block that grows wide; everything else (delay
-cells, DFFs) is local and small.
+> *Correction (TA session, 3 Jun 2026):* an earlier revision of this file
+> grouped diagonal cells with an OR-tree ($Q_k=\bigvee_{i-j=k}$). That
+> construction is unnecessary — the bijective routing above replaces it, which
+> also removes the OR-tree-skew problem entirely. Line lengths follow from $k$:
+> $N_Y = k$, $N_X = \max_m x_m$ (e.g. $k{=}4$ → 4×~11, $k{=}9$ → 9×11).
 
 ## 4. What sets the resolution, and what doesn't
 
@@ -106,7 +113,7 @@ cells, DFFs) is local and small.
 | Inverter ($\times 1, \times 2, \times 3, \times 5, \times 20$) | Delay-stage building block; also in TB load |
 | Buffered delay element ($\tau_1$ and $\tau_2$ flavours) | The Vernier delays themselves |
 | Arbiter D-FF (cross-coupled NAND or sense-amp) | Each grid cell        |
-| OR / NOR tree | Level decoder $Q_k = \bigvee_{\text{diag}}$              |
+| Output routing + buffers | One latch per level, routed straight to $Q_m$ (no OR-tree — see §3) |
 | Reset gating | Async reset on every DFF, driven from 40-ps RESET pulse   |
 
 All must be hand-built — Rabaey Ch. 6 styles are allowed (complementary
@@ -123,5 +130,8 @@ CMOS, pass-transistor, dynamic). No `analogLib` or `tsmc18` digital cells.
 3. **Cross-talk between rows and columns** — long wires through the grid
    couple. The 2-D layout (even at schematic level) needs careful net
    ordering.
-4. **OR-tree skew** — different diagonal levels see different OR depths.
-   Equalise either by buffering or by a balanced reduction tree.
+4. **Per-tap fan-out loading** — every delay tap drives all the latches on its
+   row/column **plus the next delay stage**. Sizing $\tau_1/\tau_2$ without that
+   replica load gives a fictitious LSB; expect to need a strong (~32×-class)
+   output driver per tap and possibly a larger $k$ (TA session, 3 Jun 2026 —
+   the other 2-D group ended at 9×11 for exactly this reason).
