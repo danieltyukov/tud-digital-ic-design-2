@@ -1,13 +1,15 @@
 Starting Single Run, Sweeps and Corners...
 
-Current time: Wed Jun  3 18:17:23 2026 
+Current time: Sat Jun  6 16:54:08 2026 
 Best design point: 1
 Design specs: 
 	vernier2d_delay_tb_1	corner	Nominal - 
+	TAU1		134.5p
+	TAU2		134.2p
 Design parameters: 
 
 ExplorerRun.0
-Number of points completed: 1
+Number of points completed: 17
 Number of simulation errors: 0
 ExplorerRun.0 completed. 
-Current time: Wed Jun  3 18:17:30 2026 
+Current time: Sat Jun  6 16:55:20 2026 

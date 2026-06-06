@@ -58,15 +58,23 @@
 						<value>1</value>
 					</var>
 					<var>m_inv_in
-						<value>4</value>
+						<value>{Inclusion List}2{Inclusion List}{From/To}Linear:2:2:34{From/To}</value>
 					</var>
 					<var>m_inv_out
-						<value>16</value>
+						<value>1*m_inv_in</value>
 					</var>
 					<var>m_load
-						<value>30</value>
+						<value>10</value>
 					</var>
 				</vars>
+				<outputs>
+					<output>TAU1
+						<evalType>point</evalType>
+					</output>
+					<output>TAU2
+						<evalType>point</evalType>
+					</output>
+				</outputs>
 			</test>
 		</tests>
 		<extensions>
