@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<statedb ICVersion="IC23.1-64b.ISR2.29" modifiedTime="06/08/2026 14:57:55" version="5">active
+<statedb ICVersion="IC23.1-64b.ISR2.29" modifiedTime="06/08/2026 17:11:34" version="5">active
 	<Test Name="vernier2d_delay_tb_1">
 		<component Name="adeInfo" Type="skillTable">adeinfo
-			<field Name="designInfo" Type="list">("vernier2d" "delay_tb" "schematic" "spectre")</field>
-			<field Name="projectDir" Type="string">"/data/simdir/jhoogeweegen/simulation/vernier2d/delay_tb/maestro/results/maestro/.tmpADEDir_jhoogeweegen/vernier2d_delay_tb_1/simulation"</field>
+			<field Name="designInfo" Type="list">("vernier2d" "delay_tb_withSR" "schematic" "spectre")</field>
+			<field Name="projectDir" Type="string">"/data/simdir/jhoogeweegen/simulation/vernier2d/delay_tb_withSR/maestro/results/maestro/.tmpADEDir_jhoogeweegen/vernier2d_delay_tb_1/simulation"</field>
 			<field Name="descriptiontext" Type="string">"None"</field>
 		</component>
 		<component Name="rfstim" Type="skillTable">rfstim</component>
@@ -422,7 +422,7 @@
 			</partition>
 		</component>
 		<component Name="modelSetup" Type="skillTable">modelSetup
-			<field Name="modelFiles" Type="list">(("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "pre_simu") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "tt_lib") ("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "ss_lib") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "ff_lib") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "fs_lib") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "sf_lib") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "mc_lib") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "mismatch_lib"))</field>
+			<field Name="modelFiles" Type="list">(("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "pre_simu") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "tt_lib") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "ss_lib") ("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "ff_lib") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "fs_lib") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "sf_lib") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "mc_lib") ("# /opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/tsmc18/../models/spectre/c018bcd_gen2_v1d6_usage.scs" "mismatch_lib"))</field>
 		</component>
 		<component Name="mtsSetup" Type="skillTable">mtsSetup
 			<field Name="mtsMode" Type="list">nil</field>
@@ -1281,37 +1281,37 @@
 				</field>
 				<field Name="saveComponent_5" Type="defstruct">sevVariableStruct
 					<field Name="name" Type="string">"trim_2_t1"</field>
-					<field Name="expression" Type="string">"0"</field>
+					<field Name="expression" Type="string">"1"</field>
 					<field Name="index" Type="fixnum">6</field>
 				</field>
 				<field Name="saveComponent_6" Type="defstruct">sevVariableStruct
 					<field Name="name" Type="string">"trim_2_t2"</field>
-					<field Name="expression" Type="string">"0"</field>
+					<field Name="expression" Type="string">"1"</field>
 					<field Name="index" Type="fixnum">7</field>
 				</field>
 				<field Name="saveComponent_7" Type="defstruct">sevVariableStruct
-					<field Name="name" Type="string">"m_inv_in"</field>
-					<field Name="expression" Type="string">"15"</field>
+					<field Name="name" Type="string">"m_load"</field>
+					<field Name="expression" Type="string">"22"</field>
 					<field Name="index" Type="fixnum">8</field>
 				</field>
 				<field Name="saveComponent_8" Type="defstruct">sevVariableStruct
-					<field Name="name" Type="string">"m_load"</field>
-					<field Name="expression" Type="string">"22"</field>
+					<field Name="name" Type="string">"mul"</field>
+					<field Name="expression" Type="string">"11"</field>
 					<field Name="index" Type="fixnum">9</field>
 				</field>
 				<field Name="saveComponent_9" Type="defstruct">sevVariableStruct
-					<field Name="name" Type="string">"mul"</field>
-					<field Name="expression" Type="string">"1"</field>
+					<field Name="name" Type="string">"m_inv_in"</field>
+					<field Name="expression" Type="string">"19"</field>
 					<field Name="index" Type="fixnum">10</field>
 				</field>
 				<field Name="saveComponent_10" Type="defstruct">sevVariableStruct
-					<field Name="name" Type="string">"m_inv_out"</field>
-					<field Name="expression" Type="string">"1*m_inv_in"</field>
+					<field Name="name" Type="string">"m_switch_t2"</field>
+					<field Name="expression" Type="string">"m_switch_t1"</field>
 					<field Name="index" Type="fixnum">11</field>
 				</field>
 				<field Name="saveComponent_11" Type="defstruct">sevVariableStruct
-					<field Name="name" Type="string">"m_switch_t2"</field>
-					<field Name="expression" Type="string">"m_switch_t1"</field>
+					<field Name="name" Type="string">"m_inv_out"</field>
+					<field Name="expression" Type="string">"1*m_inv_in"</field>
 					<field Name="index" Type="fixnum">12</field>
 				</field>
 			</field>

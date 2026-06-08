@@ -11,7 +11,7 @@
 				<tool>ADE</tool>
 				<tooloptions>
 					<option>cell
-						<value>delay_tb</value>
+						<value>delay_tb_withSR</value>
 					</option>
 					<option>lib
 						<value>vernier2d</value>
@@ -49,16 +49,16 @@
 						<value>0</value>
 					</var>
 					<var>trim_2_t1
-						<value>0</value>
+						<value>1</value>
 					</var>
 					<var>trim_2_t2
-						<value>0</value>
+						<value>1</value>
 					</var>
 					<var>mul
-						<value>{Inclusion List}10{Inclusion List}{From/To}Linear:1:10:101{From/To}</value>
+						<value>11</value>
 					</var>
 					<var>m_inv_in
-						<value>15</value>
+						<value>19</value>
 					</var>
 					<var>m_inv_out
 						<value>1*m_inv_in</value>

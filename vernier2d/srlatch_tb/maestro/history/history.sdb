@@ -3,15 +3,15 @@
 	<active>Active Setup</active>
 	<history>History
 		<historyentry assemblerOrExplorer="explorer" roOrView="view" runningOrFinished="finished">ExplorerRun.0
-			<timestamp>Jun 8 13:32:22 2026</timestamp>
-			<uuid>{6d255d48-5126-4cd1-9c43-25b68d47a91f}</uuid>
+			<timestamp>Jun 8 15:41:19 2026</timestamp>
+			<uuid>{5846ffa4-d4d1-4116-a7ef-5690b164a5c8}</uuid>
 			<locked>0</locked>
 			<mode>Single Run, Sweeps and Corners</mode>
-			<resultsname>/home/datyukov/tsmcBCD/vernier2d/srlatch_tb/maestro/results/maestro/$AXL_HISTORY_NAME.rdb</resultsname>
+			<resultsname>/home/jhoogeweegen/tsmcBCD/vernier2d/srlatch_tb/maestro/results/maestro/$AXL_HISTORY_NAME.rdb</resultsname>
 			<simresults>$AXL_SETUPDB_DIR/results/maestro/$AXL_HISTORY_NAME.rdb</simresults>
-			<runlog>/home/datyukov/tsmcBCD/vernier2d/srlatch_tb/maestro/results/maestro/$AXL_HISTORY_NAME.log</runlog>
+			<runlog>/home/jhoogeweegen/tsmcBCD/vernier2d/srlatch_tb/maestro/results/maestro/$AXL_HISTORY_NAME.log</runlog>
 			<runlogfile>$AXL_SETUPDB_DIR/results/maestro/$AXL_HISTORY_NAME.log</runlogfile>
-			<psfdir>/home/datyukov/simulation/vernier2d/srlatch_tb/maestro/results/maestro/$AXL_HISTORY_NAME</psfdir>
+			<psfdir>/data/simdir/jhoogeweegen/simulation/vernier2d/srlatch_tb/maestro/results/maestro/$AXL_HISTORY_NAME</psfdir>
 			<simdir>$AXL_PROJECT_DIR/vernier2d/srlatch_tb/maestro/results/maestro/$AXL_HISTORY_NAME</simdir>
 		</historyentry>
 	</history>
