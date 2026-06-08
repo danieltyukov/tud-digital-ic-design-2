@@ -41,6 +41,8 @@ is already routed to this repo's `launch-cadence.sh`.
 ├── register-library.sh             # add DEFINE entries to cds.lib
 ├── run-testbench.sh                # run OCEAN testbench on the server
 │
+├── delay_progress.md               # live delay-line sizing log (current τ/grid source of truth)
+│
 ├── tutorials/                      # official EE4615 PDFs
 │   ├── Cadence First Use Tutorial 2026.pdf
 │   ├── EE4615_Instruction_Manual_2026.pdf
@@ -53,15 +55,19 @@ is already routed to this repo's `launch-cadence.sh`.
 │       ├── testbench_tdc_binary.ocn
 │       └── testbench_tdc_therm.ocn
 │
-├── project/                        # our project documentation
+├── project-details/                # our project documentation + anchor-paper PDFs
 │   ├── README.md
 │   ├── 01-architecture.md
 │   ├── 02-specs.md
 │   ├── 03-testbench.md
 │   ├── 04-implementation-plan.md
 │   ├── 05-deliverables.md
-│   └── 06-references.md
+│   ├── 06-references.md
+│   ├── 07-paper-2d-vernier-design-notes.md
+│   ├── 08-build-test-runbook.md
+│   └── *.pdf                       # MAIN_2D_VERNIER + 1D_VERNIER ×2 + BASIC_FLASH
 │
+├── tesbench-pics/                  # extracted Testbench schematics + cell map
 ├── tsmcBCD/                        # sshfs mount of remote ~/tsmcBCD (gitignored)
 └── results/                        # OCEAN result CSVs (gitignored or kept, your call)
 ```
@@ -79,7 +85,7 @@ is already routed to this repo's `launch-cadence.sh`.
 
 ## Math notation in this repo
 
-`.md` files under `project/` use **LaTeX** math (`$...$`, `$$...$$`),
+`.md` files under `project-details/` use **LaTeX** math (`$...$`, `$$...$$`),
 overriding the parent workspace's Unicode-math rule. Most renderers
 (GitHub, VS Code preview, Obsidian) handle this natively.
 

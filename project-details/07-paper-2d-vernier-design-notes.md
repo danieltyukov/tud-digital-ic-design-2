@@ -2,7 +2,8 @@
 
 > **Source:** L. Vercesi, A. Liscidini, R. Castello, "Two-Dimensions Vernier
 > Time-to-Digital Converter," *IEEE J. Solid-State Circuits*, vol. 45, no. 8,
-> pp. 1504–1512, Aug. 2010. (PDF at repo root: `IEEE Xplore Full-Text PDF_.pdf`.)
+> pp. 1504–1512, Aug. 2010. (PDF in this folder:
+> `MAIN_2D_VERNIER_Two-Dimensions Vernier Time-to-Digital Converter.pdf`.)
 > This is anchor paper #2 in [`06-references.md`](06-references.md) and the
 > basis of [`01-architecture.md`](01-architecture.md).
 >
@@ -62,9 +63,16 @@ $$
 
 > **Design rule for us:** pick $t_0$ first, then set
 > $\tau_1 = k\,t_0$ and $\tau_2 = (k-1)\,t_0$.
-> Our [`02-specs.md`](02-specs.md) numbers already satisfy this:
+> Our [`02-specs.md`](02-specs.md) baseline satisfies this:
 > $t_0 = 15\,\text{ps}$, $\tau_1 = 60\,\text{ps} = 4t_0$,
 > $\tau_2 = 45\,\text{ps} = 3t_0$ ⇒ $k=4$, ratio $4{:}3$, $\gcd(60,45)=15$. ✓
+>
+> *(Live sizing — [`../delay_progress.md`](../delay_progress.md), 6 Jun 2026: under
+> the real replica load the feasible point is trending to $k=6$,
+> $\tau_1 = 90$ / $\tau_2 = 75\,\text{ps}$ ($6{:}5$, same $t_0 = 15$ ps),
+> 10×6 logical / 10×10 physical. The $k=4$ figures here are the original
+> baseline, to be reconciled once Joris locks the loaded delay element
+> ~Mon 8 Jun. The $k{:}(k{-}1)$ rule above holds for either $k$.)*
 
 ### 1.3 Range extension trick (cheap codes)
 Unlike a linear Vernier, you can **extend the range by lengthening only one

@@ -3,6 +3,13 @@
 All numbers are course-required unless flagged "design choice". Targets are
 what we must hit; "stretch" rows are bonuses or quality improvements.
 
+> ⚠️ **Operating point under active sizing** (Joris, [`../delay_progress.md`](../delay_progress.md), 6 Jun 2026):
+> under the real replica load the feasible point is trending to $k=6$,
+> $\tau_1 = 90$ / $\tau_2 = 75\,\text{ps}$, $t_0 = 15\,\text{ps}$, **10×6 logical
+> (10×10 physical)** grid. The $k=4$ / 60–45 ps figures below are the **original
+> baseline** — to be reconciled once the loaded delay element is locked
+> (~Mon 8 Jun 2026).
+
 ## Hard requirements (must pass, all from EE4615 brief)
 
 | Parameter             | Target                                                |

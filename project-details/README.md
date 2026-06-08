@@ -17,6 +17,7 @@
 | `06-references.md`            | Papers and book chapters that anchor the design             |
 | `07-paper-2d-vernier-design-notes.md` | What to copy/adapt/skip from the Vercesi 2010 JSSC paper |
 | `08-build-test-runbook.md`    | **Step-by-step fast path**: build & test the TDC, phase by phase |
+| [`../delay_progress.md`](../delay_progress.md) | **Live delay-line sizing log** (repo root) — current $\tau$ / grid source of truth; supersedes the baseline numbers here as it converges |
 
 ## Deadlines
 
