@@ -37,8 +37,9 @@ wrapper by **re-pointing instance `I13` (`td` → `tdc_core`)**, keeping the
 supply ammeters (energy node `/I1/VDD`) and the provided testbench intact.
 
 **Sign off:** `srlatch`, `delay_tau1`, `delay_tau2` each DC + transient + Monte-
-Carlo simulated; $\tau_1\approx60$, $\tau_2\approx45\,\text{ps}$ in TT@27 °C and
-$\tau_2>0$ in FF@−40 °C.
+Carlo simulated; $\tau_1\approx90$, $\tau_2\approx75\,\text{ps}$ (locked $k{=}6$)
+in TT@27 °C, and $\tau_2>0$ with $\tau_1-\tau_2\approx15\,\text{ps}$ held across
+the five process corners.
 
 ## Phase 2 — single Vernier row (1-D sanity check)
 
@@ -63,16 +64,20 @@ latch output **directly** to its thermometer pin — **no OR-tree** (TA session
 
 **Sign off:** TB_TDC sim runs in TT, delay sweep covers all $32$ codes.
 
-## Phase 4 — corners + temperature
+## Phase 4 — process corners
 
-Use OCEAN sweep with $\texttt{corners} = \;\texttt{`("tt" "ss" "ff" "snfp" "fnsp")}$.
-**TA session 3 Jun 2026: temperature sweep possibly not required (corners only)
-— confirm before running** $T \in \{-40, 27, 150\}^\circ\text{C}$. Resize delay
-cells if $\tau_2$ goes negative in the fast corner.
+The EE4615 brief (*Project Definition* slide) requires robustness across the
+**five process corners** — temperature is **not** a stated requirement, so the
+corner sweep is the mandated validation. Use OCEAN with
+$\texttt{corners} = \;\texttt{`("tt" "ss" "ff" "snfp" "fnsp")}$ and per corner
+switch the MOSCAP banks to hold $\tau_1-\tau_2 = 15\,\text{ps}$. Add cap range /
+resize if $\tau_2$ goes negative in the fast corner **or** $\tau_1$ can't reach
+90 ps (the known FF sub-risk — see `delay_progress.md`). A temperature sweep
+($-40/27/150^\circ\text{C}$) is an optional robustness extra if time allows,
+not graded.
 
-**Sign off:** all required corner (× temperature, if confirmed) runs pass —
-no missing codes ($\mathrm{DNL}[k] > -1\,\text{LSB}\;\forall k$), LSB stays
-under $20\,\text{ps}$.
+**Sign off:** all five corner runs pass — no missing codes
+($\mathrm{DNL}[k] > -1\,\text{LSB}\;\forall k$), LSB stays under $20\,\text{ps}$.
 
 ## Phase 5 — energy / FoM
 
