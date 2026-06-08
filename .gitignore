@@ -21,6 +21,11 @@ panic*.log
 CDS.log
 xcelium.d/
 INCA_libs/
+*.cdslck
+*.cdslck.*
+*.oa-
+libManager.log*
+cdsLibEditor.log
 
 # Local Claude Code settings (personal allowlist)
 .claude/

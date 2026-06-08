@@ -1,0 +1,31 @@
+; OCEAN validation for vernier2d/srlatch (TDC arbiter) via srlatch_tb.
+; Demonstrates: RESET clears Q, then the first rising input wins the arbitration.
+;   net1=S  net2=R  net3=RESET  net5=Q(I0.Q)  net6=QB(I0.QB)
+simulator( 'spectre )
+design( "vernier2d" "srlatch_tb" "schematic" )
+resultsDir( "/home/datyukov/sims/srlatch" )
+modelFile(
+  '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "pre_simu")
+  '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "tt_lib")
+)
+analysis( 'tran ?stop "400p" ?errpreset "conservative" )
+temp( 27 )
+save( 'allpub )
+
+; ---- Case A: S rises 10 ps before R  ->  expect Q = 1 ----
+desVar( "tds" 200p )
+desVar( "tdr" 210p )
+run()
+selectResult( 'tran )
+fprintf( poport "CASE_A S-leads: RST@20p=%.3f Qreset@120p=%.3f S@399p=%.3f R@399p=%.3f Q@399p=%.3f QB@399p=%.3f\n"
+  value(v("net3") 20p) value(v("net5") 120p) value(v("net1") 399p) value(v("net2") 399p)
+  value(v("net5") 399p) value(v("net6") 399p) )
+
+; ---- Case B: R rises 10 ps before S  ->  expect Q = 0 ----
+desVar( "tds" 210p )
+desVar( "tdr" 200p )
+run()
+selectResult( 'tran )
+fprintf( poport "CASE_B R-leads: Q@399p=%.3f QB@399p=%.3f\n"
+  value(v("net5") 399p) value(v("net6") 399p) )
+exit()
