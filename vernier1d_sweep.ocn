@@ -1,0 +1,26 @@
+simulator( 'spectre )
+design( "vernier2d" "vernier1d_tb" "schematic" )
+resultsDir( "/home/datyukov/sims/v1d" )
+modelFile(
+  '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "pre_simu")
+  '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "tt_lib")
+)
+analysis( 'tran ?stop "1.3n" ?errpreset "conservative" )
+temp( 27 )
+desVar( "mul" 11 ) desVar( "m_inv_in" 19 ) desVar( "m_inv_out" 19 )
+desVar( "m_switch_t1" 10 ) desVar( "m_switch_t2" 10 )
+save( 'allpub )
+qn = '("net5" "net6" "net7" "net8" "net9" "net10" "net11" "net12")
+foreach( dt list( 0.0 10p 20p 30p 45p 60p 75p 90p 105p 120p 135p )
+  desVar( "tdstop" 200p+dt )
+  run()
+  selectResult( 'tran )
+  code = 0
+  foreach( nn qn
+    qv = value( v(nn) 1.2n )
+    when( qv && qv > 0.9 code = code+1 )
+  )
+  fprintf( poport "SWEEP skew_ps=%.0f code=%d  q1=%.2f q4=%.2f q8=%.2f\n"
+    dt*1e12 code value(v("net5") 1.2n) value(v("net8") 1.2n) value(v("net12") 1.2n) )
+)
+exit()
