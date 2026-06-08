@@ -3,12 +3,12 @@
 All numbers are course-required unless flagged "design choice". Targets are
 what we must hit; "stretch" rows are bonuses or quality improvements.
 
-> ⚠️ **Operating point under active sizing** (Joris, [`../delay_progress.md`](../delay_progress.md), 6 Jun 2026):
-> under the real replica load the feasible point is trending to $k=6$,
-> $\tau_1 = 90$ / $\tau_2 = 75\,\text{ps}$, $t_0 = 15\,\text{ps}$, **10×6 logical
-> (10×10 physical)** grid. The $k=4$ / 60–45 ps figures below are the **original
-> baseline** — to be reconciled once the loaded delay element is locked
-> (~Mon 8 Jun 2026).
+> ✅ **Operating point LOCKED** (8 Jun 2026 — see [`../delay_progress.md`](../delay_progress.md)
+> and Joris's 5-corner sims): under the real replica load the design sits at
+> $k=6$, $\tau_1 = 90$ / $\tau_2 = 75\,\text{ps}$, $t_0 = 15\,\text{ps}$,
+> **10×6 logical (10×10 physical)** grid, SR-latch arbiter (not D-FF). The
+> earlier $k=4$ / 60–45 ps figures were the pre-load baseline and are
+> superseded — the design-choices table below now reflects the locked values.
 
 ## Hard requirements (must pass, all from EE4615 brief)
 
@@ -26,6 +26,7 @@ what we must hit; "stretch" rows are bonuses or quality improvements.
 | Inputs                | RESET ($40\,\text{ps}$ pulse), START, STOP — each via $3\times$ min-Inv |
 | Output loading        | $5\times$ min-inverter per $Q$-line *(actual TB schematic: $2\times$ `Inv_2x` + 1 fF — see `../tesbench-pics/testbench-schematics-extracted.md`)* |
 | Single ground         | One reference; $V_{DD}, V_{SS}$ built on top           |
+| Supply domains        | DUT on its own $V_{DD}$ (0 V series ammeter → energy node `/I1/VDD`); stimulus buffers on a **separate** $V_{DD\_TB}$ so only DUT current is measured (Test Bench slide) |
 | Layout                | Not required — schematic + Spectre only                |
 | Simulator             | Cadence Spectre                                        |
 | Linearity reporting   | DNL, INL across all corners and temperatures           |
@@ -33,17 +34,25 @@ what we must hit; "stretch" rows are bonuses or quality improvements.
 | Power metric          | Average energy per conversion, $E_\text{conv}$ (J/conv) |
 | Figure of Merit       | $\mathrm{FoM} = P / t_0$ — lower is better             |
 
-## Design choices we have to make (will fill in as we go)
+## Design choices — LOCKED (8 Jun 2026)
 
-| Parameter              | Provisional choice    | Notes                                       |
+| Parameter              | Choice                 | Notes                                       |
 |------------------------|------------------------|---------------------------------------------|
-| LSB target $t_0$       | $\approx 15\,\text{ps}$ | Margin under the 20 ps cap                  |
-| $\tau_1$ (Start path)  | $= k\,t_0$; 60 ps ($k{=}4$) **if reachable under column load** | TA 3 Jun 2026: each tap drives a column of latches + next stage; other 2-D group needed longer delays + ~32× driver |
-| $\tau_2$ (Stop path)   | $= (k-1)\,t_0$; 45 ps if $k{=}4$ holds | Must stay $\tau_2 > 0$ and $\tau_1-\tau_2>0$ across all corners |
-| Grid size              | $N_Y = k$, $N_X$ from the bijective routing table | $k{=}4$ → 4×~11; $k{=}9$ → 9×11 (other group). ~32 latches, **one per level, no OR-tree** |
-| Arbiter style          | Cross-coupled NAND or sense-amp DFF | Decide after metastability sim |
-| Delay-element style    | Current-starved inverter or capacitively-loaded inverter | Sets $\tau_1$ vs $\tau_2$ |
-| Reset distribution     | Async clear on every DFF, gated by $40\,\text{ps}$ RESET pulse | Aligned start state |
+| LSB target $t_0$       | $15\,\text{ps}$        | 5 ps margin under the 20 ps cap; $t_0 = \tau_1 - \tau_2$ |
+| Multiplier $k$         | $6 \Rightarrow \tau_1{:}\tau_2 = 6{:}5$ | Sets line lengths and the bijective routing map |
+| $\tau_1$ (Start, slow) | $= k\,t_0 = 90\,\text{ps}$ | **10-stage** line (the longer/slower line carries START); each tap drives 6 real latches (col load) |
+| $\tau_2$ (Stop, fast)  | $= (k-1)\,t_0 = 75\,\text{ps}$ | **6-stage** line; each tap drives 10 real latches (row load). Must keep $\tau_2>0$ and $\tau_1-\tau_2=15$ ps across all corners |
+| Grid size              | **10×6 logical** ($N_X{=}10$ START, $N_Y{=}6$ STOP), **10×10 physical** | Dummy-padded to square so every tap sees fan-out 10 (perfect matching). 31 latches, **one per level, no OR-tree** |
+| Arbiter style          | **NAND-based SR latch** + async RESET (built: `vernier2d/srlatch`) | Chosen over D-FF; metastable "dead zone" to be characterised |
+| Delay-element style    | Capacitively-loaded inverter, **FO=1** ($\text{Inv}_\text{in}{=}2\times$, $\text{Inv}_\text{out}{=}2\times$) | FO=4 pinned the floor at 97 ps; FO=1 opened a 74–147 ps window |
+| Corner tuning          | Transmission-gate–switched **MOSCAP banks** at each tap | Holds $\tau_1-\tau_2 = 15$ ps across SS/TT/FF/SF/FS (see `delay_progress.md` §4) |
+| Reset distribution     | Async clear on every latch, gated by $40\,\text{ps}$ RESET pulse | Aligned start state |
+
+> **Line-length vs fan-out (don't conflate):** the **10-stage** cascade is the
+> slow $\tau_1$/START line; the **6-stage** cascade is the fast $\tau_2$/STOP line
+> (the routing math $t_m = x_m\tau_1 - y_m\tau_2 = m\,t_0$ only closes this way).
+> Per-tap **fan-out** is the opposite — a $\tau_2$ tap feeds $N_X{=}10$ latches,
+> a $\tau_1$ tap feeds $N_Y{=}6$ — which the 10×10 physical padding equalises.
 
 ## DNL / INL definitions (from Lecture 2)
 
