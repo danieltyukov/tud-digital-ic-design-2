@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<setupdb version="7">history
+	<active>Active Setup</active>
+	<history>History
+		<historyentry roOrView="view">Interactive.0
+			<timestamp>Mar 28 19:09:22 2021</timestamp>
+			<uuid>{7ed24ef6-95e1-487c-86bd-efbda46a4097}</uuid>
+			<locked>0</locked>
+			<mode>Single Run, Sweeps and Corners</mode>
+			<resultsname></resultsname>
+			<simresults>$AXL_SETUPDB_DIR/results/data/$AXL_HISTORY_NAME.rdb</simresults>
+			<runlog></runlog>
+			<runlogfile>$AXL_SETUPDB_DIR/results/data/$AXL_HISTORY_NAME.log</runlogfile>
+			<psfdir></psfdir>
+			<simdir></simdir>
+		</historyentry>
+		<historyentry assemblerOrExplorer="assembler" roOrView="view" runningOrFinished="finished">Interactive.1
+			<timestamp>Jun 9 12:24:05 2026</timestamp>
+			<uuid>{7d1db0c2-a907-425b-a025-f09b9f82d3f3}</uuid>
+			<locked>0</locked>
+			<mode>Single Run, Sweeps and Corners</mode>
+			<resultsname>/home/jhoogeweegen/tsmcBCD/vernier2d/TB_TDC/maestro/results/maestro/$AXL_HISTORY_NAME.rdb</resultsname>
+			<simresults>$AXL_SETUPDB_DIR/results/maestro/$AXL_HISTORY_NAME.rdb</simresults>
+			<runlog>/home/jhoogeweegen/tsmcBCD/vernier2d/TB_TDC/maestro/results/maestro/$AXL_HISTORY_NAME.log</runlog>
+			<runlogfile>$AXL_SETUPDB_DIR/results/maestro/$AXL_HISTORY_NAME.log</runlogfile>
+			<psfdir>/data/simdir/jhoogeweegen/simulation/vernier2d/TB_TDC/maestro/results/maestro/$AXL_HISTORY_NAME</psfdir>
+			<simdir>$AXL_PROJECT_DIR/vernier2d/TB_TDC/maestro/results/maestro/$AXL_HISTORY_NAME</simdir>
+		</historyentry>
+		<historyentry assemblerOrExplorer="assembler" roOrView="view" runningOrFinished="finished">Interactive.2
+			<timestamp>Jun 9 12:28:22 2026</timestamp>
+			<uuid>{5ff34cb2-199a-4c6e-9d6b-143b8688ee33}</uuid>
+			<locked>0</locked>
+			<mode>Single Run, Sweeps and Corners</mode>
+			<resultsname>/home/jhoogeweegen/tsmcBCD/vernier2d/TB_TDC/maestro/results/maestro/$AXL_HISTORY_NAME.rdb</resultsname>
+			<simresults>$AXL_SETUPDB_DIR/results/maestro/$AXL_HISTORY_NAME.rdb</simresults>
+			<runlog>/home/jhoogeweegen/tsmcBCD/vernier2d/TB_TDC/maestro/results/maestro/$AXL_HISTORY_NAME.log</runlog>
+			<runlogfile>$AXL_SETUPDB_DIR/results/maestro/$AXL_HISTORY_NAME.log</runlogfile>
+			<psfdir>/data/simdir/jhoogeweegen/simulation/vernier2d/TB_TDC/maestro/results/maestro/$AXL_HISTORY_NAME</psfdir>
+			<simdir>$AXL_PROJECT_DIR/vernier2d/TB_TDC/maestro/results/maestro/$AXL_HISTORY_NAME</simdir>
+		</historyentry>
+	</history>
+</setupdb>
