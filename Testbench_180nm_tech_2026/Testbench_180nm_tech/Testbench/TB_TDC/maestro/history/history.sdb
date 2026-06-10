@@ -38,9 +38,9 @@
 			<psfdir></psfdir>
 			<simdir></simdir>
 		</historyentry>
-		<historyentry assemblerOrExplorer="assembler" roOrView="view" runningOrFinished="finished">Interactive.3
-			<timestamp>Jun 9 12:37:07 2026</timestamp>
-			<uuid>{1646c915-f0fc-4870-868e-7475c78b6a28}</uuid>
+		<historyentry assemblerOrExplorer="explorer" roOrView="view" runningOrFinished="finished">ExplorerRun.0
+			<timestamp>Jun 10 02:55:15 2026</timestamp>
+			<uuid>{0cc4a611-678b-4571-baaa-788df77f1f35}</uuid>
 			<locked>0</locked>
 			<mode>Single Run, Sweeps and Corners</mode>
 			<resultsname>/home/jhoogeweegen/tsmcBCD/Testbench/TB_TDC/maestro/results/maestro/$AXL_HISTORY_NAME.rdb</resultsname>

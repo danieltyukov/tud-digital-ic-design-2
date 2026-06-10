@@ -1,0 +1,17 @@
+Starting Single Run, Sweeps and Corners...
+
+Current time: Wed Jun 10 02:55:18 2026 
+Best design point: 1
+Design specs: 
+	Testbench:TB_TDC:1	corner	Nominal - 
+	TAU1		90.53p
+	TAU2		75.44p
+Design parameters: 
+	delay		140p
+	supply		1.8
+
+ExplorerRun.0
+Number of points completed: 1
+Number of simulation errors: 0
+ExplorerRun.0 completed. 
+Current time: Wed Jun 10 02:55:37 2026 

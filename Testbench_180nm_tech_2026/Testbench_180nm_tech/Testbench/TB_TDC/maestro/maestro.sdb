@@ -52,45 +52,89 @@
 				</origoptions>
 				<vars>
 					<var>delay
-						<value></value>
+						<value>140p</value>
 					</var>
 					<var>m_inv_in
-						<value>19</value>
+						<value>10</value>
 					</var>
 					<var>m_inv_out
 						<value>1*m_inv_in</value>
 					</var>
-					<var>m_switch_t1
-						<value>10</value>
-					</var>
-					<var>m_switch_t2
-						<value>m_switch_t1</value>
-					</var>
-					<var>mul
-						<value>11</value>
-					</var>
 					<var>supply
-						<value></value>
+						<value>1.8</value>
 					</var>
 					<var>trim_0_t1
-						<value>1</value>
+						<value>1.8</value>
 					</var>
 					<var>trim_0_t2
-						<value>1</value>
+						<value>1.8</value>
 					</var>
 					<var>trim_1_t1
-						<value>1</value>
+						<value>1.8</value>
 					</var>
 					<var>trim_1_t2
-						<value>1</value>
+						<value>1.8</value>
 					</var>
 					<var>trim_2_t1
-						<value>1</value>
+						<value>0</value>
 					</var>
 					<var>trim_2_t2
 						<value>0</value>
 					</var>
+					<var>reset
+						<value>300p</value>
+					</var>
+					<var>trim0
+						<value>2</value>
+					</var>
+					<var>trim1
+						<value>20</value>
+					</var>
+					<var>trim2
+						<value>21</value>
+					</var>
+					<var>fine
+						<value>18</value>
+					</var>
+					<var>fixt
+						<value>7</value>
+					</var>
+					<var>m1_t1
+						<value>5</value>
+					</var>
+					<var>m1_t2
+						<value>5</value>
+					</var>
+					<var>m2_t1
+						<value>6</value>
+					</var>
+					<var>m2_t2
+						<value>6</value>
+					</var>
+					<var>trim0_t2
+						<value>2</value>
+					</var>
+					<var>trim1_t2
+						<value>14</value>
+					</var>
+					<var>trim2_t2
+						<value>18</value>
+					</var>
+					<var>start
+						<value>1n</value>
+					</var>
 				</vars>
+				<outputs>
+					<output>(cross(VT("/out_t1") 0.9 1 "rising") - cross(VT("/in_t1") 0.9 1 "rising"))
+						<evalType>point</evalType>
+					</output>
+					<output>TAU1
+						<evalType>point</evalType>
+					</output>
+					<output>TAU2
+						<evalType>point</evalType>
+					</output>
+				</outputs>
 			</test>
 		</tests>
 		<vars>
@@ -116,7 +160,7 @@
 				<value>no</value>
 			</plottingoption>
 			<plottingoption>waveformtemplate
-				<value></value>
+				<value>(None)</value>
 			</plottingoption>
 			<plottingoption>allplottingtemplates
 				<value></value>
@@ -128,7 +172,7 @@
 				<value>Replace</value>
 			</plottingoption>
 			<plottingoption>useMaestroPlottingTemplate
-				<value>no</value>
+				<value>yes</value>
 			</plottingoption>
 			<plottingoption>distributedplot_enabled
 				<value>no</value>
@@ -138,6 +182,20 @@
 		<incrementalsimulationoptions>
 			<incrementalSimulation>0</incrementalSimulation>
 		</incrementalsimulationoptions>
+		<checksasserts netlist="0">
+			<test netlist="0" netlistscope="all">Testbench:TB_TDC:1</test>
+		</checksasserts>
+		<exploreroptions>
+			<exploreroption>waveformtemplate
+				<value>(None)</value>
+			</exploreroption>
+		</exploreroptions>
+		<incrementalsimsetup>
+			<useincremental>0</useincremental>
+			<reusenetlist>0</reusenetlist>
+			<reusesaverunhist>0</reusesaverunhist>
+			<copyreferenceresults>1</copyreferenceresults>
+		</incrementalsimsetup>
 	</active>
 	<history>History
 	</history>
