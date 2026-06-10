@@ -1,0 +1,18 @@
+1-D Vernier row vs 2-D Vernier core (both: same delay_tau1/tau2/srlatch cells,
+same tuned sizing, TT 27C; 1-D trim hardwired all-on -> predicted t0=16.6ps)
+
+metric                       1-D row        2-D core      
+codes                        8              31            
+LSB (ps)                     28.57          15.35         
+DNL max (LSB)                0.89           0.66          
+INL max (LSB)                0.89           NaN           
+delay stages (t1+t2)         16             18            
+arbiters (incl dummies)      8              60            
+sigma-W total (um)           651.3          1305.6        
+sigma-W per code (um)        81.4           42.1          
+E/conv (pJ)                  2.62           11.67         
+E per code (pJ)              0.327          0.376         
+full-scale latency           ~8*tau1=0.85ns ~10*tau1=0.9ns
+
+31-code 1-D extrapolation: 31/8 * 651.3 = 2524 um sigma-W (1.9x the 2-D),
+62 delay stages (3.4x), full-scale latency ~31*tau1 = 3.3 ns (3.7x).

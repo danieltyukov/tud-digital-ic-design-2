@@ -1,0 +1,56 @@
+; Fine staircase of the 1-D Vernier row (vernier2d/vernier1d_row via vernier1d_tb).
+; Same cells and same tuned sizing variables as the 2-D core; trim pins are
+; hardwired all-ON in the row schematic (111/111), predicted t0(TT) = 16.6 ps.
+; START fixed at 200p (VSTART), STOP swept via desVar tdstop. Outputs net5..net12.
+
+envSetVal( "asimenv.startup" "projectDir" 'string "/home/datyukov/sims/v1d_cmp/proj" )
+simulator( 'spectre )
+design( "vernier2d" "vernier1d_tb" "schematic" )
+resultsDir( "/home/datyukov/sims/v1d_cmp/tt" )
+modelFile(
+  '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "pre_simu")
+  '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "tt_lib")
+)
+analysis( 'tran ?stop "1.3n" ?errpreset "conservative" ?maxstep "2p" )
+temp( 27 )
+
+; identical tuned sizing set as the 2-D core (maestro TT values)
+desVar( "m1_t1" "5" )   desVar( "m1_t2" "5" )
+desVar( "m2_t1" "6" )   desVar( "m2_t2" "6" )
+desVar( "fixt" "7" )
+desVar( "m_inv_in" "10" )
+desVar( "m_inv_out" "1*m_inv_in" )
+desVar( "trim0" "2" )    desVar( "trim1" "20" )   desVar( "trim2" "21" )
+desVar( "fine" "18" )
+desVar( "trim0_t2" "2" ) desVar( "trim1_t2" "14" ) desVar( "trim2_t2" "18" )
+
+delete('save)
+save( 'v "/net5" "/net6" "/net7" "/net8" "/net9" "/net10" "/net11" "/net12" )
+save( 'i "VDD:p" )
+
+Vdd = 1.8
+tmeas = 1.25e-9
+
+fout = outfile( "/home/datyukov/sims/v1d_cmp/v1d_tt.csv" "w" )
+fprintf( fout "dt_s,code,energy_J\n" )
+
+for( k -10 310
+  dt = k * 1e-12
+  desVar( "tdstop" 200e-12 + dt )
+  run()
+  selectResults( 'tran )
+  code = 0
+  foreach( nn '( "/net5" "/net6" "/net7" "/net8" "/net9" "/net10" "/net11" "/net12" )
+    qv = value( v( nn ) tmeas )
+    if( qv != nil && qv > Vdd/2.0 then code = code + 1 )
+  )
+  iw = getData( "VDD:p" ?result 'tran )
+  en = -1.0
+  if( iw != nil then en = abs( integ( iw 0 tmeas ) ) * Vdd )
+  fprintf( fout "%.15g,%d,%.6g\n" dt code en )
+  fprintf( poport "PROG k=%d dt=%dps code=%d en=%.3gpJ\n" k k code en*1e12 )
+  drain( poport )
+)
+close( fout )
+fprintf( poport "V1D_DONE\n" )
+exit()
