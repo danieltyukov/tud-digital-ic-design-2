@@ -83,6 +83,41 @@ drain=source=bulk connection. Note: the six `vsource` instances inside
 `tdc_core` are the trim-bank gate biases (`trim_x_t1/t2`) — ideal control
 signals standing in for static config bits.
 
+**Per the spec ("$\Sigma W$ as a single number per corner"):** the value is the
+**same in all five corners** — $1305.6\,\mu\text{m}$ — because one fixed trim
+configuration is used everywhere and trimming only changes MOSCAP gate biases,
+never the devices present. Scope (open TA question in `02-specs.md`): core-only
+$= 1305.6\,\mu\text{m}$; including the testbench buffer cells (`TDC_in`
+$11.9\,\mu\text{m}$ + `TDC_out` $81.8\,\mu\text{m}$) $= 1399.3\,\mu\text{m}$ —
+both extracted, quote whichever scope the TA confirms.
+
+## Requirements cross-check (02-specs.md "What gets reported")
+
+| # | requirement | status |
+|---|---|---|
+| 1 | DNL plot per corner | ✓ `dnl_per_corner.png` |
+| 2 | INL plot per corner | ✓ `inl_per_corner.png` |
+| 3 | Power vs delay + average $E_{conv}$ | ✓ `power_vs_delay.png` + table |
+| 4 | $\Sigma W$ per corner | ✓ $1305.6\,\mu\text{m}$ (identical all corners, see above) |
+| 5 | FoM table: best / worst / nominal | ✓ both definitions below |
+| 6 | Worst-case dead zone | ✓ $<1\,\text{fs}$ (`../metastability/`) |
+
+**Both FoM definitions** (the spec defines $\mathrm{FoM}=P/t_0$; the course
+OCEAN script computes $E_{conv}/2^{\mathrm{ENOB}}$). $P_{avg}$ assumes the sim's
+$5\,\text{ns}$ conversion window ($200\,\text{MS/s}$):
+
+| corner | $P_{avg}$ (mW) | $\mathrm{FoM}=P/t_0$ (mW/ps) | $\mathrm{FoM}=E/2^{ENOB}$ (pJ/step) |
+|--------|------|-------|------|
+| tt (nominal) | 2.33 | 0.152 | 0.50 |
+| ss | 2.15 | 0.118 (best) | 0.51 |
+| ff | 2.57 | 0.196 (worst) | 0.54 |
+| sf | 2.39 | 0.156 | 0.50 |
+| fs | 2.28 | 0.145 | 0.48 (best) |
+
+Dynamic range (free from the staircase data): $31 \times \mathrm{LSB} =
+406\,\text{ps}$ (ff) $\dots 564\,\text{ps}$ (ss); quantization-limited
+single-shot precision $\sigma = \mathrm{LSB}/\sqrt{12} = 3.8\dots5.3\,\text{ps}$.
+
 ## Files
 
 - `tdc_corners_all.ocn` — the sweep (env `CORNER=tt|ss|ff|sf|fs` selects corner)

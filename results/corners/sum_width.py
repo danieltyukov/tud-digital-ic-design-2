@@ -10,7 +10,7 @@ import sys
 from collections import defaultdict
 
 NETLIST = "/tmp/flat_netlist.txt"
-TOP = "tdc_core"
+TOP = sys.argv[1] if len(sys.argv) > 1 else "tdc_core"
 
 # tuned design-variable values (TB_TDC maestro state, teammate's run)
 VARS = {
