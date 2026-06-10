@@ -1,0 +1,36 @@
+; Metastability fine pass: 10 fs grid across the decision boundary (0.10..0.30 ps).
+; Longer 2.0n window so near-metastable points get time to resolve.
+simulator( 'spectre )
+design( "vernier2d" "srlatch_tb" "schematic" )
+resultsDir( "/home/datyukov/sims/srlatch_meta" )
+modelFile(
+  '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "pre_simu")
+  '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "tt_lib")
+)
+analysis( 'tran ?stop "2.0n" ?errpreset "conservative" ?maxstep "2p" )
+temp( 27 )
+save( 'v "/net1" "/net2" "/net3" "/net5" "/net6" )
+
+Vdd = 1.8
+tbase = 200e-12
+tmeas = 1.95e-9
+
+fout = outfile( "/home/datyukov/sims/srlatch_meta/meta_fine.csv" "w" )
+fprintf( fout "dt_s,q_final_V,qb_final_V,tq_cross_s\n" )
+
+for( k 10 30
+  dt = k * 1e-14
+  desVar( "tds" tbase )
+  desVar( "tdr" tbase + dt )
+  run()
+  selectResult( 'tran )
+  qf  = value( v("net5") tmeas )
+  qbf = value( v("net6") tmeas )
+  tq  = cross( v("net5") Vdd/2.0 1 "rising" )
+  if( tq == nil then tq = -1.0 )
+  fprintf( fout "%.15g,%.6f,%.6f,%.15g\n" dt qf qbf tq )
+  fprintf( poport "PT dt=%.2fps qf=%.3f tq=%.5gs\n" k*0.01 qf tq )
+)
+close( fout )
+fprintf( poport "META_FINE_DONE\n" )
+exit()

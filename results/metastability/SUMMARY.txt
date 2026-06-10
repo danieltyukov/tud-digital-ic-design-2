@@ -1,0 +1,10 @@
+SR-latch arbiter (vernier2d/srlatch) metastability characterization
+Corner TT, 27 C, Vdd=1.8 V, 5 fF output loads, via srlatch_tb
+
+Arbitration offset dt0          : +0.149 ps (S must lead by this to fire)
+Dead zone (decision ambiguity)  : < 1 fs  (grid-limited bound)
+Regeneration time constant tau  : 24.1 ps (fit over overdrive < 5 ps)
+Nominal clk-Q delay (20 ps ovd) : 102.4 ps
+Max observed decision time      : 347.5 ps (at 0.50 fs overdrive)
+Verdict: dead zone (<1 fs) is >4 orders below the 15 ps LSB; offset (~0.15 ps) is ~1% of LSB.
+Points: 49 sims. Sources: meta_coarse.csv, meta_fine.csv, meta_ultra.csv
