@@ -95,7 +95,7 @@ L_TITLE = LAYOUTS["Title slide + image"]
 L_PLAIN = LAYOUTS["Alleen titel"]
 L_CLOSE = LAYOUTS["Closure"]
 
-page_no = [0]
+page_no = [1]  # title page counts as slide 1; first content slide shows 2
 
 
 def set_run(r, text, size, bold=False, color=NAVY, italic=False, name="Arial"):
