@@ -1,0 +1,214 @@
+/* 5-corner TB_TDC thermometer sweep — adapted from the course
+   testbench_tdc_therm.ocn (methodology and metrics identical).
+   Changes for this machine + our tuned design:
+   - model path: muse/BCDG2 kit (oa180 path does not exist on et4382);
+     corner sections in usage.scs are tt_lib/ss_lib/ff_lib/sf_lib/fs_lib
+     (sf = snfp, fs = fnsp in this kit's naming)
+   - netlists directly from the Testbench/TB_TDC schematic
+   - full tuned design-variable set from the TB_TDC maestro state
+     (trim banks, stage multipliers, start/reset) instead of Cload
+   - per-run progress prints for headless monitoring */
+
+/* corner comes from the CORNER environment variable (one process per corner,
+   run up to 3 in parallel by the driver script). Each process netlists the
+   schematic into its own isolated project dir to avoid collisions; the
+   projectDir option must be set BEFORE simulator() to take effect. */
+runCorner = getShellEnvVar( "CORNER" )
+envSetVal( "asimenv.startup" "projectDir" 'string
+  strcat( "/home/datyukov/sims/tdc_tuned/proj_" runCorner ) )
+simulator( 'spectre )
+design( "Testbench" "TB_TDC" "schematic" )
+resultsDir( strcat( "/home/datyukov/sims/tdc_tuned/" runCorner ) )
+
+Vdd = 1.8
+timeStep = 1.5e-12
+transientSimTime = 5e-9
+startDelay = -15e-12
+corners = list( runCorner )
+earlyHigh = 1
+
+desVar( "supply" "1.8" )
+desVar( "start" "1n" )
+desVar( "reset" "300p" )
+desVar( "m1_t1" "5" )   desVar( "m1_t2" "5" )
+desVar( "m2_t1" "6" )   desVar( "m2_t2" "6" )
+desVar( "fixt" "7" )
+desVar( "m_inv_in" "10" )
+desVar( "m_inv_out" "1*m_inv_in" )
+desVar( "trim0" "2" )    desVar( "trim1" "20" )   desVar( "trim2" "21" )
+desVar( "fine" "18" )
+desVar( "trim0_t2" "2" ) desVar( "trim1_t2" "14" ) desVar( "trim2_t2" "18" )
+desVar( "trim_0_t1" getShellEnvVar("TRIM0T1") ) desVar( "trim_0_t2" getShellEnvVar("TRIM0T2") )
+desVar( "trim_1_t1" getShellEnvVar("TRIM1T1") ) desVar( "trim_1_t2" getShellEnvVar("TRIM1T2") )
+desVar( "trim_2_t1" getShellEnvVar("TRIM2T1") ) desVar( "trim_2_t2" getShellEnvVar("TRIM2T2") )
+
+fout = outfile( strcat( "/home/datyukov/sims/tdc_tuned/results_" runCorner ".csv" ) "w" )
+flog = outfile( strcat( "/home/datyukov/sims/tdc_tuned/log_" runCorner ".txt" ) "w" )
+
+delete('save)
+save( 'v "/Q1" "/Q2" "/Q3" "/Q4" "/Q5" "/Q6" "/Q7" "/Q8" "/Q9" "/Q10" "/Q11" "/Q12" "/Q13" "/Q14" "/Q15" "/Q16" "/Q17" "/Q18" "/Q19" "/Q20" "/Q21" "/Q22" "/Q23" "/Q24" "/Q25" "/Q26" "/Q27" "/Q28" "/Q29" "/Q30" "/Q31" )
+save( 'i "/I1/VDD" )
+save( 'v "/VDD" )
+temp( 27 )
+
+procedure( loadlibs( corner )
+  modelFile(
+    '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "pre_simu")
+    list("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" strcat(corner "_lib"))
+  )
+)
+
+procedure( sampleOutputs()
+  nlow = 0
+  for( k 1 31
+    qv = value( v( sprintf(nil "/Q%d" k) ) transientSimTime )
+    if( qv < Vmid then nlow = nlow + 1 )
+    OutArr[k] = if( qv < Vmid 1 0 )
+  )
+)
+
+procedure( countOutputs()
+  outcode = if( earlyHigh != 0 31 - nlow nlow )
+)
+
+procedure( checkThermometer()
+  /* thermometer: with earlyHigh=1 fired bits are HIGH (OutArr=0) and must be
+     contiguous from bit 1; a low bit followed by a high bit is a hole */
+  for( k 1 30
+    if( earlyHigh != 0 then
+      if( OutArr[k+1] == 0 && OutArr[k] == 1 then MissingThermometer = 1 )
+    else
+      if( OutArr[k+1] == 1 && OutArr[k] == 0 then MissingThermometer = 1 )
+    )
+  )
+)
+
+procedure( initializeSweep( corner )
+  i = 0
+  MissingThermometer = 0
+  nonMonotonicity = 0
+  total_energy = 0.0
+  total_energy_count = 0
+  old_outcode = 0
+  lastchange_delay = 0.0
+  missingCode = 0
+  min_delay = 1.0
+  max_delay = 0.0
+  sum_delay = 0.0
+  delay_count = 0
+  outcode = 0
+  fprintf( fout "%s corner\nDelay\tOutput\n" corner )
+  fprintf( flog "%s corner\nDelay\tOutput\tEnergy\n" corner )
+)
+
+procedure( doRun()
+  delay = i * timeStep + startDelay
+  desVar( "delay" delay )
+  desVar( "del" delay )
+  run()
+  selectResults( 'tran )
+  integrate = abs( integ( i("/I1/VDD") 0 transientSimTime ) )
+  energy = integrate * Vdd
+  sampleOutputs()
+  countOutputs()
+  checkThermometer()
+  total_energy = total_energy + energy
+  total_energy_count++
+  if( (outcode > old_outcode) then
+    this_delay = delay - lastchange_delay
+    delays[outcode-1] = delay
+    if( (outcode > (old_outcode + 1)) then missingCode = 1 )
+    if( (outcode > 1) then
+      min_delay = if( (this_delay < min_delay) this_delay min_delay )
+      max_delay = if( (this_delay > max_delay) this_delay max_delay )
+      sum_delay = sum_delay + this_delay
+      delay_count++
+    )
+    fprintf( fout "%g\t%d\n" delay outcode )
+    lastchange_delay = delay
+  )
+  if( (outcode < old_outcode) then nonMonotonicity = 1 )
+  if( (MissingThermometer == 1) then
+    fprintf( fout "WARNING - Missing bit in thermometer code at %g\n" delay ) )
+  if( (missingCode == 1) then
+    fprintf( fout "WARNING - Missing code in output code at %g\n" delay ) )
+  if( (nonMonotonicity == 1) then
+    fprintf( fout "WARNING - Non-monotonous output code at %g\n" delay ) )
+  old_outcode = outcode
+  fprintf( flog "%g\t%d\t%g\n" delay outcode energy )
+  fprintf( poport "PROG corner=%s i=%d delay=%g code=%d\n" cur_corner i delay outcode )
+  drain( poport )
+  ++i
+)
+
+procedure( ok()
+  (MissingThermometer + missingCode + nonMonotonicity) == 0
+)
+
+procedure( calcINL()
+  early = 0.0
+  late = 0.0
+  for( i 1 30
+    cur_offset = delays[i] - delays[0] - i*resolution
+    if( (cur_offset > late) then late = cur_offset )
+    if( (cur_offset < early) then early = cur_offset )
+  )
+  (late - early) / (2*resolution)
+)
+
+procedure( generateOutputs()
+  fprintf( fout "Simulation step_size\t%g\n" timeStep )
+  fprintf( fout "Transient simulation time\t%g\n" transientSimTime )
+  resolution = sum_delay / delay_count
+  fprintf( fout "Resolution\t%g\n" resolution )
+  DNL = max( max_delay - resolution resolution - min_delay ) / resolution
+  fprintf( fout "DNL\t%g\n" DNL )
+  INL = calcINL()
+  fprintf( fout "INL\t%g\n" INL )
+  fprintf( fout "TDC Offset\t%g\n" delays[0] - resolution )
+  energy_per_conversion = total_energy / total_energy_count
+  fprintf( fout "Average Energy\t%g\n" energy_per_conversion )
+  Q_DNL = -5*6.02 + 9.03 + 10*log10( 1.0/12.0 + DNL*DNL/(2*3.2*3.2) )
+  THD = INL*INL/1024.0
+  SINAD = -10.0*log10( 10.0**(Q_DNL/10) + THD )
+  ENOB = (SINAD - 1.76) / 6.02
+  fprintf( fout "ENOB\t%g\n" ENOB )
+  FoM = energy_per_conversion / (2**ENOB)
+  fprintf( fout "FoM\t%g\n" FoM )
+)
+
+analysis( 'tran ?stop transientSimTime ?maxstep "1n" )
+Vmid = Vdd/2.0
+declare( delays[31] )
+declare( OutArr[32] )
+
+foreach( corner corners
+  cur_corner = corner
+  loadlibs( corner )
+  initializeSweep( corner )
+  while( (outcode < 31)
+    if( ok() doRun() outcode = 31 )
+  )
+  if( ok() then
+    j = i
+    for( i j (j + j/31 + 5)
+      if( ok() then doRun() )
+    )
+  )
+  if( ok() then
+    generateOutputs()
+    fprintf( poport "CORNER_PASS %s\n" corner )
+  else
+    fprintf( fout "Errors occurred\n" )
+    fprintf( poport "CORNER_FAIL %s MT=%d MC=%d NM=%d at delay=%g\n"
+      corner MissingThermometer missingCode nonMonotonicity delay )
+  )
+  drain( poport )
+  fprintf( fout "\n\n" )
+  fprintf( flog "\n\n" )
+)
+
+close( flog )
+close( fout )
+fprintf( poport "ALL_CORNERS_DONE\n" )
+exit()

@@ -1,0 +1,16 @@
+TB_TDC tuned-corner sweep (per-corner MOSCAP-bank calibration, 27 C, 1.8 V)
+Chosen configs (gate V t1-banks / t2-banks):
+  tt 0 1.8 0 0 1.8 0
+  ss 1.8 0 0 1.8 0 0
+  ff 1.8 1.8 1.8 1.8 1.8 1.8
+  sf 0 0 1.8 1.8 1.8 0
+  fs 1.8 1.8 0 1.8 1.8 0
+
+corner pass   | LSB_unt   LSB_tun   | DNL_unt  DNL_tun  | INL_unt  INL_tun  | E/conv(pJ) ENOB     FoM(pJ/st)
+tt     PASS   | 15.35     15.00     | 0.66     0.70     | 0.65     0.60     | 11.640     4.566    0.492     
+ss     PASS   | 18.20     15.85     | 0.90     0.89     | 0.76     0.74     | 10.678     4.402    0.505     
+ff     PASS   | 13.10     15.30     | 0.72     0.67     | 0.58     0.54     | 12.957     4.619    0.527     
+sf     PASS   | 15.35     15.25     | 0.66     0.67     | 0.61     0.67     | 11.950     4.521    0.520     
+fs     PASS   | 15.70     15.70     | 0.72     0.72     | 0.61     0.61     | 11.377     4.556    0.484     
+
+LSB corner spread: 5.10 ps untuned -> 0.85 ps calibrated (6x tighter)

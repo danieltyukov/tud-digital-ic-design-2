@@ -1,0 +1,74 @@
+; Per-corner MOSCAP trim-bank calibration probe.
+; Sweeps all 64 on/off combos of the 6 bank gate voltages (3 per delay line),
+; measuring tau1/tau2 per single transient via the internal tap nets
+; (same expressions as the TB_TDC maestro outputs TAU1/TAU2).
+; Corner from env CORNER. One CSV per corner: tune_<corner>.csv
+
+runCorner = getShellEnvVar( "CORNER" )
+envSetVal( "asimenv.startup" "projectDir" 'string
+  strcat( "/home/datyukov/sims/tdc_tuned/proj_probe_" runCorner ) )
+simulator( 'spectre )
+design( "Testbench" "TB_TDC" "schematic" )
+resultsDir( strcat( "/home/datyukov/sims/tdc_tuned/probe_" runCorner ) )
+modelFile(
+  '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "pre_simu")
+  list("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" strcat(runCorner "_lib"))
+)
+analysis( 'tran ?stop "2.5n" ?maxstep "1n" )
+temp( 27 )
+
+desVar( "supply" "1.8" )
+desVar( "start" "1n" )
+desVar( "reset" "300p" )
+desVar( "delay" "140p" )
+desVar( "del" "140p" )
+desVar( "m1_t1" "5" )   desVar( "m1_t2" "5" )
+desVar( "m2_t1" "6" )   desVar( "m2_t2" "6" )
+desVar( "fixt" "7" )
+desVar( "m_inv_in" "10" )
+desVar( "m_inv_out" "1*m_inv_in" )
+desVar( "trim0" "2" )    desVar( "trim1" "20" )   desVar( "trim2" "21" )
+desVar( "fine" "18" )
+desVar( "trim0_t2" "2" ) desVar( "trim1_t2" "14" ) desVar( "trim2_t2" "18" )
+
+delete('save)
+save( 'v "/I7/I14/tau1" "/I7/I14/start_in" "/I7/I14/tau2" "/I7/I14/stop_in" )
+
+Vmid = 0.9
+
+fout = outfile( strcat( "/home/datyukov/sims/tdc_tuned/tune_" runCorner ".csv" ) "w" )
+fprintf( fout "v0t1,v1t1,v2t1,v0t2,v1t2,v2t2,tau1_s,tau2_s,t0_s\n" )
+
+foreach( v0t1 '( "0" "1.8" )
+ foreach( v1t1 '( "0" "1.8" )
+  foreach( v2t1 '( "0" "1.8" )
+   foreach( v0t2 '( "0" "1.8" )
+    foreach( v1t2 '( "0" "1.8" )
+     foreach( v2t2 '( "0" "1.8" )
+      desVar( "trim_0_t1" v0t1 )
+      desVar( "trim_1_t1" v1t1 )
+      desVar( "trim_2_t1" v2t1 )
+      desVar( "trim_0_t2" v0t2 )
+      desVar( "trim_1_t2" v1t2 )
+      desVar( "trim_2_t2" v2t2 )
+      run()
+      selectResults( 'tran )
+      ta = cross( v("/I7/I14/start_in") Vmid 1 "rising" )
+      tb = cross( v("/I7/I14/tau1")     Vmid 1 "rising" )
+      tc = cross( v("/I7/I14/stop_in")  Vmid 1 "rising" )
+      td = cross( v("/I7/I14/tau2")     Vmid 1 "rising" )
+      tau1 = -1.0
+      tau2 = -1.0
+      t0 = -999.0
+      if( ta != nil && tb != nil then tau1 = tb - ta )
+      if( tc != nil && td != nil then tau2 = td - tc )
+      if( tau1 > 0 && tau2 > 0 then t0 = tau1 - tau2 )
+      fprintf( fout "%s,%s,%s,%s,%s,%s,%.6g,%.6g,%.6g\n"
+        v0t1 v1t1 v2t1 v0t2 v1t2 v2t2 tau1 tau2 t0 )
+      fprintf( poport "CFG t1=%s/%s/%s t2=%s/%s/%s tau1=%.4gp tau2=%.4gp t0=%.4gp\n"
+        v0t1 v1t1 v2t1 v0t2 v1t2 v2t2 tau1*1e12 tau2*1e12 t0*1e12 )
+      drain( poport )
+))))))
+close( fout )
+fprintf( poport "PROBE_DONE %s\n" runCorner )
+exit()
