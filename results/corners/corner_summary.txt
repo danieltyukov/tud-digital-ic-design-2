@@ -1,0 +1,7 @@
+TB_TDC 5-corner sweep summary (27 C, 1.8 V)
+corner pass   LSB(ps)    DNLmax    INLmax    offset(ps) E/conv(pJ)   ENOB     FoM(J)       warnings
+tt     PASS   15.350     0.661     0.798     -15.35    11.6658      4.540    5.014e-13    0
+ss     PASS   18.200     0.896     1.044     -24.20    10.7646      4.391    5.129e-13    0
+ff     PASS   13.100     0.718     0.618     -7.10     12.8401      4.576    5.382e-13    0
+sf     PASS   15.350     0.661     0.723     -13.85    11.9616      4.568    5.044e-13    0
+fs     PASS   15.700     0.720     0.701     -15.70    11.3765      4.556    4.838e-13    0
