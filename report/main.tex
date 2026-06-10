@@ -1,0 +1,170 @@
+\documentclass[11pt,a4paper]{article}
+
+% ----- Page layout -----
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{parskip}
+\usepackage{microtype}
+
+% ----- Math -----
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathtools}
+\usepackage{siunitx}
+  \sisetup{per-mode=symbol, range-units=single, range-phrase={--}}
+
+% ----- Graphics & figures -----
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,skip=4pt}
+\usepackage{subcaption}
+
+% ----- Tables -----
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+
+% ----- Headers, hyperlinks, colors -----
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  urlcolor=blue!60!black,
+  citecolor=blue!60!black
+}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small EE4615 -- Digital IC Design II}
+\fancyhead[R]{\small Group 22 -- 2-D Vernier TDC}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ----- Custom commands -----
+\newcommand{\ttau}[1]{\tau_{#1}}
+\newcommand{\tlsb}{t_{0}}
+\newcommand{\sumw}{\Sigma W}
+\newcommand{\dt}{\Delta t}
+\newcommand{\Vdd}{V_{\mathrm{DD}}}
+
+\begin{document}
+
+% ===================== Title page =====================
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\large\textbf{DELFT UNIVERSITY OF TECHNOLOGY}}\\[2pt]
+{\small Faculty of Electrical Engineering, Mathematics and Computer Science}\\[2cm]
+\includegraphics[width=0.25\textwidth]{figures/tudelft_logo.jpeg}\\[2cm]
+{\Large\textbf{A 15 ps Two-Dimensional Vernier}}\\[6pt]
+{\Large\textbf{Time-to-Digital Converter in 180 nm BCD}}\\[10pt]
+{\large Design report}\\[6pt]
+{\large Digital IC Design II (EE4615)}\\[1.5cm]
+
+\begin{minipage}{0.85\textwidth}
+\centering\small
+5-bit thermometer output, calibrated resolution \SIrange{15.0}{15.85}{\pico\second},
+validated in all five process corners.\\
+Schematic and Spectre simulation only; every cell hand-designed in
+TSMC \SI{180}{\nano\meter} BCD.
+\end{minipage}
+\vfill
+\rule{0.7\textwidth}{0.4pt}\\[4pt]
+{\large Group 22}\\[4pt]
+{\large Daniel Tyukov \quad 5714699}\\[2pt]
+{\large Joris Hoogeweegen \quad 5619963}\\[4pt]
+{\normalsize Delft, 15 June 2026}\\[4pt]
+\rule{0.7\textwidth}{0.4pt}
+\vspace{1cm}
+\end{titlepage}
+
+% ===================== Abstract =====================
+\begin{abstract}
+\noindent
+This report presents the design and verification of a 5-bit two-dimensional
+Vernier time-to-digital converter (TDC) in TSMC \SI{180}{\nano\meter} BCD.
+Two delay lines with $\ttau{1}=\SI{90}{\pico\second}$ and
+$\ttau{2}=\SI{75}{\pico\second}$ span a $10\times6$ comparison grid whose 31
+thermometer levels each map to exactly one SR-latch arbiter, so no combining
+logic is needed. The resolution $\tlsb=\ttau{1}-\ttau{2}=\SI{15}{\pico\second}$
+sits well below the \SI{20}{\pico\second} specification and below the
+technology gate delay. Three design decisions carry the result: fan-out-of-one
+delay cells that break the \SI{97}{\pico\second} floor of conventional
+fan-out-of-four sizing, characterization against a replica of the true in-grid
+load of roughly twenty unit inverters, and dummy latches that equalize the
+fan-out of every tap. With one fixed trim setting the converter passes all sign-off checks
+in all five process corners (LSB \SIrange{13.1}{18.2}{\pico\second}, worst DNL
+\num{0.90} LSB, no missing codes). Switched MOSCAP trim banks then re-center
+the LSB per corner to \SIrange{15.0}{15.85}{\pico\second}, a six times tighter
+spread. The core measures \SI{11.7}{\pico\joule} per conversion at a figure of
+merit of \SI{0.50}{\pico\joule} per step, with a total transistor width of
+\SI{1305.6}{\micro\meter}. The arbiter dead zone is below \SI{1}{\femto\second}.
+A one-dimensional Vernier row built from the same cells was measured for
+comparison and confirms both the loading analysis and the area advantage of the
+two-dimensional architecture.
+\end{abstract}
+
+\vspace{0.5em}
+
+\input{sections/01_introduction.tex}
+\input{sections/02_architecture.tex}
+\input{sections/03_circuits.tex}
+\input{sections/04_method.tex}
+\input{sections/05_results.tex}
+\input{sections/06_conclusion.tex}
+
+% ===================== References =====================
+\begin{thebibliography}{9}
+\small
+
+\bibitem{liscidini2009}
+A.~Liscidini, L.~Vercesi, and R.~Castello,
+``Time to digital converter based on a 2-dimensions Vernier architecture,''
+in \emph{Proc. IEEE Custom Integrated Circuits Conference (CICC)}, 2009, pp.~45--48.
+
+\bibitem{vercesi2010}
+L.~Vercesi, A.~Liscidini, and R.~Castello,
+``Two-dimensions Vernier time-to-digital converter,''
+\emph{IEEE J. Solid-State Circuits}, vol.~45, no.~8, pp.~1504--1512, Aug. 2010.
+
+\bibitem{dudek2000}
+P.~Dudek, S.~Szczepa\'nski, and J.~V. Hatfield,
+``A high-resolution CMOS time-to-digital converter utilizing a Vernier delay line,''
+\emph{IEEE J. Solid-State Circuits}, vol.~35, no.~2, pp.~240--247, Feb. 2000.
+
+\bibitem{staszewski2005}
+R.~B. Staszewski, S.~Vemulapalli, P.~Vallur, J.~Wallberg, and P.~T. Balsara,
+``Time-to-digital converter for RF frequency synthesis in 90 nm CMOS,''
+in \emph{Proc. IEEE Radio Frequency Integrated Circuits (RFIC) Symposium}, 2005,
+pp.~473--476.
+
+\bibitem{yu2010}
+J.~Yu, F.~F. Dai, and R.~C. Jaeger,
+``A 12-bit Vernier ring time-to-digital converter in 0.13~$\mu$m CMOS technology,''
+\emph{IEEE J. Solid-State Circuits}, vol.~45, no.~4, pp.~830--842, Apr. 2010.
+
+\bibitem{henzler2008}
+S.~Henzler \emph{et al.},
+``A local passive time interpolation concept for variation-tolerant high-resolution
+time-to-digital conversion,''
+\emph{IEEE J. Solid-State Circuits}, vol.~43, no.~7, pp.~1666--1676, Jul. 2008.
+
+\bibitem{henzlerbook}
+S.~Henzler, \emph{Time-to-Digital Converters},
+Springer Series in Advanced Microelectronics, vol.~29, Springer, 2010.
+
+\bibitem{ee4615tb}
+EE4615 course staff, \emph{EE4615 Testbench Instructions}, Delft University of
+Technology, Apr. 2026.
+
+\bibitem{ee4615corner}
+EE4615 course staff, \emph{EE4615 Corner Analysis Manual}, Delft University of
+Technology, Apr. 2026.
+
+\end{thebibliography}
+
+\appendix
+\input{sections/appendix.tex}
+
+\end{document}

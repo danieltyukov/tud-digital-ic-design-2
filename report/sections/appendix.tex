@@ -1,0 +1,94 @@
+\section{Per-corner trim configurations}
+\label{app:trim}
+
+Calibration sets the six trim-bank gates (\texttt{trim<0:2>} of each line) to
+\SI{0}{\volt} or \SI{1.8}{\volt}. Table~\ref{tab:trim} lists the winning
+configuration per corner from the exhaustive 64-point probe, together with the
+stage delays it produces. The FS optimum coincides with the default setting.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Chosen trim-bank gate voltages per corner and resulting stage-level
+delays. Bank sizes: $2/20/21$ fingers ($\ttau{1}$), $2/14/18$ fingers
+($\ttau{2}$).}
+\label{tab:trim}
+\begin{tabular}{l ccc ccc S[table-format=2.1] S[table-format=2.1] S[table-format=2.2]}
+\toprule
+& \multicolumn{3}{c}{$\ttau{1}$ banks (V)} & \multicolumn{3}{c}{$\ttau{2}$ banks (V)} & & & \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+\textbf{Corner} & 0 & 1 & 2 & 0 & 1 & 2 &
+{$\ttau{1}$ (\si{\pico\second})} & {$\ttau{2}$ (\si{\pico\second})} & {$\tlsb$ (\si{\pico\second})} \\
+\midrule
+TT & 0   & 1.8 & 0   & 0   & 1.8 & 0   & 88.5 & 73.4 & 15.04 \\
+SS & 1.8 & 0   & 0   & 1.8 & 0   & 0   & 93.0 & 78.0 & 14.91 \\
+FF & 1.8 & 1.8 & 1.8 & 1.8 & 1.8 & 1.8 & 90.5 & 75.6 & 14.97 \\
+SF & 0   & 0   & 1.8 & 1.8 & 1.8 & 0   & 89.8 & 74.7 & 15.07 \\
+FS & 1.8 & 1.8 & 0   & 1.8 & 1.8 & 0   & 92.6 & 77.6 & 15.01 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The stage-level probe slightly underestimates the staircase LSB (SS:
+\SI{14.91}{\pico\second} probe vs \SI{15.85}{\pico\second} measured) because
+grid loading beyond the first stage adds a corner-dependent few percent. This
+is why every configuration was re-validated with a full staircase sweep.
+
+\section{Transistor-width budget}
+\label{app:sigmaw}
+
+Table~\ref{tab:sigmaw} breaks the netlist-extracted $\sumw$ of
+\texttt{tdc\_core} down per cell, summed over all instantiations.
+
+\begin{table}[H]
+\centering
+\small
+\caption{$\sumw$ breakdown of the core (Spectre netlist, tuned variable
+values). MOSCAPs identified by drain, source and bulk tied together. The
+grand total is quoted as \SI{1305.6}{\micro\meter} in the text.}
+\label{tab:sigmaw}
+\begin{tabular}{l S[table-format=4.2]}
+\toprule
+\textbf{Group} & {$\sumw$ (\si{\micro\meter})} \\
+\midrule
+\texttt{delay\_tau1} (11 inst.) & 450.89 \\
+\texttt{delay\_tau2} (7 inst.) & 207.34 \\
+\texttt{nand} (latch gates) & 211.20 \\
+\texttt{srlatch} (reset devices) & 120.00 \\
+\texttt{Inv} (latch output buffers) & 114.84 \\
+\texttt{Inv\_20x} & 92.40 \\
+\texttt{Inv\_80x} & 52.80 \\
+\texttt{Inv\_40x} & 26.40 \\
+\texttt{Inv\_10x} & 19.80 \\
+\texttt{Inv\_5x} & 9.90 \\
+\midrule
+Active total (1120 devices) & 1078.32 \\
+MOSCAP trim banks (65 devices) & 227.25 \\
+\textbf{Grand total (1185 devices)} & \textbf{1305.57} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Simulation inventory}
+\label{app:sims}
+
+All results are reproducible from the OCEAN scripts submitted with the design.
+
+\begin{itemize}
+  \item \textbf{Corner campaign} (\texttt{tdc\_corners\_all.ocn}): five
+  corners, \SI{1.5}{\pico\second} delay step, 1670 transients; produces the
+  transition tables behind Figs.~\ref{fig:staircase}--\ref{fig:linearity} and
+  Table~\ref{tab:corners}.
+  \item \textbf{Calibration probe} (\texttt{tune\_probe.ocn}): 64 trim
+  configurations $\times$ 5 corners, 320 transients; produces
+  Fig.~\ref{fig:calrange} and Table~\ref{tab:trim}.
+  \item \textbf{Calibrated campaign} (\texttt{tdc\_tuned\_all.ocn}): repeats
+  the corner campaign with per-corner trim codes; produces
+  Fig.~\ref{fig:lsbtuned}.
+  \item \textbf{Metastability} (\texttt{meta\_sweep\_\{coarse,fine,ultra\}.ocn}):
+  three nested sweeps, 49 transients, overdrive resolved to
+  \SI{0.5}{\femto\second}; produces Fig.~\ref{fig:meta}.
+  \item \textbf{1-D comparison} (\texttt{v1d\_staircase\_v2.ocn},
+  \texttt{v1d\_energy2.ocn}): 321-run staircase and energy measurement of the
+  1-D row; produces Fig.~\ref{fig:1dvs2d} and Table~\ref{tab:1dvs2d}.
+\end{itemize}
