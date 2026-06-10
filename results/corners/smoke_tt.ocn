@@ -1,0 +1,53 @@
+; TB_TDC smoke run: TT corner, 4 delay points. Verifies netlist-from-schematic,
+; design variables, code polarity vs delay, and /I1/VDD energy probe.
+simulator( 'spectre )
+design( "Testbench" "TB_TDC" "schematic" )
+resultsDir( "/home/datyukov/sims/tdc_corners" )
+modelFile(
+  '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "pre_simu")
+  '("/opt/ei/DK/tsmc/muse/BCDG2/2.16B_5M6_40K/models/spectre/c018bcd_gen2_v1d6_usage.scs" "tt_lib")
+)
+analysis( 'tran ?stop "5n" ?maxstep "1n" )
+temp( 27 )
+
+; --- full tuned design-variable set from TB_TDC maestro (teammate's run) ---
+desVar( "supply" "1.8" )
+desVar( "start" "1n" )
+desVar( "reset" "300p" )
+desVar( "m1_t1" "5" )   desVar( "m1_t2" "5" )
+desVar( "m2_t1" "6" )   desVar( "m2_t2" "6" )
+desVar( "fixt" "7" )
+desVar( "m_inv_in" "10" )
+desVar( "m_inv_out" "1*m_inv_in" )
+desVar( "trim0" "2" )    desVar( "trim1" "20" )   desVar( "trim2" "21" )
+desVar( "fine" "18" )
+desVar( "trim0_t2" "2" ) desVar( "trim1_t2" "14" ) desVar( "trim2_t2" "18" )
+desVar( "trim_0_t1" "1.8" ) desVar( "trim_0_t2" "1.8" )
+desVar( "trim_1_t1" "1.8" ) desVar( "trim_1_t2" "1.8" )
+desVar( "trim_2_t1" "0" )   desVar( "trim_2_t2" "0" )
+
+delete('save)
+save( 'v "/Q1" "/Q2" "/Q3" "/Q4" "/Q5" "/Q6" "/Q7" "/Q8" "/Q9" "/Q10" "/Q11" "/Q12" "/Q13" "/Q14" "/Q15" "/Q16" "/Q17" "/Q18" "/Q19" "/Q20" "/Q21" "/Q22" "/Q23" "/Q24" "/Q25" "/Q26" "/Q27" "/Q28" "/Q29" "/Q30" "/Q31" )
+save( 'i "/I1/VDD" )
+save( 'v "/VDD" )
+
+Vdd = 1.8
+tmeas = 4.9e-9
+
+foreach( dly '( "0p" "140p" "300p" "465p" )
+  desVar( "delay" dly )
+  desVar( "del" dly )
+  run()
+  selectResults( 'tran )
+  nlow = 0
+  for( k 1 31
+    qv = value( v( sprintf(nil "/Q%d" k) ) tmeas )
+    if( qv < Vdd/2.0 then nlow = nlow + 1 )
+  )
+  iw = i( "/I1/VDD" )
+  en = -1.0
+  if( iw != nil then en = abs( integ( iw 0 tmeas ) ) * Vdd )
+  fprintf( poport "SMOKE delay=%s nlow=%d code_if_earlyhigh=%d energy=%.4g\n" dly nlow 31-nlow en )
+)
+fprintf( poport "SMOKE_DONE\n" )
+exit()

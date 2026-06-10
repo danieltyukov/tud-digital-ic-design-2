@@ -1,0 +1,19 @@
+SIGMA-W report for subckt 'tdc_core' (vars: tuned maestro values)
+  active  NMOS W :   474.64 um
+  active  PMOS W :   603.68 um
+  active  total  :  1078.32 um  (1120 devices)
+  MOSCAP  total  :   227.25 um  (65 devices, trim banks)
+  GRAND   total  :  1305.57 um  (1185 transistors)
+
+Per-cell totals (um, summed over all instantiations):
+  Inv            114.84
+  Inv_10x         19.80
+  Inv_20x         92.40
+  Inv_40x         26.40
+  Inv_5x           9.90
+  Inv_80x         52.80
+  delay_tau1     450.89
+  delay_tau2     207.34
+  nand           211.20
+  srlatch        120.00
+SIGMAW_DONE
