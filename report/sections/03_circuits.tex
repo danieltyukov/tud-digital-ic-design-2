@@ -21,10 +21,9 @@ is given in Appendix~\ref{app:sigmaw}.
 \textbf{Cell} & \textbf{Count} & \textbf{Contents and sizing} \\
 \midrule
 \texttt{delay\_tau1} & 11 &
-FO=1 inverter pair ($5\times$ input, $6\times$ driver, unit
-$440/\SI{220}{\nano\meter}$); fixed MOSCAP ($18\times$ fingers) behind an
-always-on access device ($7\times$); three TG-switched trim banks of
-$2/20/21$ fingers. \\
+FO=1 inverter pair ($10\times$ input, $10\times$ driver, unit
+$440/\SI{220}{\nano\meter}$); MOSCAP's for trimming: three TG-switched trim banks of
+$2/20/21$ fingers and one fixed TG-MOSCAP ($7/18$ fingers) connection to ensure $\tau_1=\tau_2+15\mathrm{ps}$. \\
 \texttt{delay\_tau2} & 7 &
 identical active devices as \texttt{delay\_tau1}; lighter trim banks of
 $2/14/18$ fingers. \\
@@ -72,17 +71,16 @@ capacitively (Fig.~\ref{fig:delaycells}). Two choices define it.
 logic path, but here delay is the product, not the cost. With FO=4 the
 intrinsic delay of the internal node pins the minimum achievable stage delay at
 \SI{97}{\pico\second} in this technology, which already exceeds the required
-$\ttau{2}$. Equal input and driver sizing ($5\times$ and $6\times$ unit
+$\ttau{2}$. Equal input and driver sizing ($10\times$ and $10\times$ unit
 fingers) reduces the internal-node capacitance and opens a usable window of
 \SIrange{74}{147}{\pico\second} under the true grid load.
 
 \textbf{Capacitive tuning, identical actives.} Both lines use the same active
 devices; only the capacitance on the internal node differs. The fixed MOSCAP
 ($18\times$ fingers, $L=\SI{250}{\nano\meter}$) sets the nominal delay, and
-three binary-weighted-like banks ($2/20/21$ fingers on the $\ttau{1}$ cell,
+three banks ($2/20/21$ fingers on the $\ttau{1}$ cell,
 $2/14/18$ on the $\ttau{2}$ cell) are switched in or out through transmission
-gates by the static \texttt{trim<0:2>} inputs. Because the $6{:}5$ delay ratio
-comes from loading rather than device sizing, $\ttau{1}$ and $\ttau{2}$ track
+gates by the static \texttt{trim<0:2>} inputs. Because both delays have the same $10\times, FO=1$ sizing, $\ttau{1}$ and $\ttau{2}$ track
 each other over process and temperature, which is what keeps their difference,
 the LSB, stable. At the tuned typical-corner point the lines measure
 $\ttau{1}=\SI{90.5}{\pico\second}$ and $\ttau{2}=\SI{75.4}{\pico\second}$.
@@ -117,7 +115,7 @@ level measured in Section~\ref{sec:meta}. And reset costs a single NMOS
 \centering
 \includegraphics[width=0.95\textwidth]{figures/tdc_core_cadence.png}
 \caption{\texttt{vernier2d/tdc\_core} as entered in Cadence Virtuoso: START
-line across the top, STOP line down the left, and the $10\times10$ padded
+line across the top, STOP line down the left, and the $10\times6$ padded
 latch matrix. The core contains 1120 active devices.}
 \label{fig:core}
 \end{figure}

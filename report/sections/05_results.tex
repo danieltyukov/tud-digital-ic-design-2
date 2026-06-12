@@ -81,11 +81,11 @@ LSB at codes 7, 13, 19 and 25, exactly the column-wrap boundaries of the
 mapping in Eq.~\eqref{eq:mapping}, where the threshold hands over from a row
 step to a column step. The pattern is identical in every corner, which
 identifies it as an architectural path-length imbalance at the wrap rather
-than device mismatch. Calibration does not remove it
+than device mismatch. Trimming does not remove it
 (Section~\ref{sec:calibration}); a targeted per-wrap capacitive correction
 could, and is listed as future work.
 
-\subsection{Per-corner calibration}
+\subsection{Per-corner trimming}
 \label{sec:calibration}
 
 \begin{figure}[htb]
@@ -112,7 +112,7 @@ LSB to \SIrange{15.0}{15.85}{\pico\second}: the corner spread tightens from
 \SI{5.10}{\pico\second} to \SI{0.85}{\pico\second}, six times, and the
 worst-case margin to the specification grows from \num{1.8} to
 \SI{4.15}{\pico\second} (Fig.~\ref{fig:lsbtuned}). DNL and INL barely move
-(worst tuned INL \num{0.74} LSB), as expected: calibration re-centers the
+(worst tuned INL \num{0.74} LSB), as expected: trimming re-centers the
 average step but cannot touch the architectural wrap pattern. One honest data
 point: the FS optimum is the default configuration, since that corner shifts N
 and P devices oppositely and nearly cancels. All sign-off checks still pass in

@@ -65,7 +65,7 @@ Equation~\eqref{eq:cell} only holds if every stage of a line contributes the
 same delay, and stage delay depends on load. In the raw $10\times6$ grid the
 taps drive between one and ten latches, which would modulate the stage delays
 along the line and corrupt the thresholds. We therefore pad the array with 29
-dummy latches to a physically symmetric $10\times10$ arrangement: 31 active
+dummy latches to a physically symmetric $10\times6$ arrangement: 31 active
 plus 29 dummy latches give every START tap and every STOP tap the same fan-out
 of ten latch inputs. The dummies are electrically identical to active latches;
 only their outputs are unused. The same uniformity argument adds one extra
