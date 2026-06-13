@@ -53,7 +53,8 @@ lengthen both lines and add area without improving resolution.
 \caption{Top level of the converter. The START line (10 stages of $\ttau{1}$,
 top) and the STOP line (6 stages of $\ttau{2}$, left) feed the SR-latch matrix.
 The 31 active latches sit on the bijective map of Eq.~\eqref{eq:mapping};
-dummy latches pad every tap to identical fan-out. Buffer trees distribute
+dummy latches fill the unused grid cells so the load is uniform along each
+line. Buffer trees distribute
 START, STOP and the \SI{40}{\pico\second} RESET. The thermometer code is read
 directly from the latch outputs.}
 \label{fig:overview}
@@ -62,15 +63,15 @@ directly from the latch outputs.}
 \subsection{Fan-out equalization and reset}
 
 Equation~\eqref{eq:cell} only holds if every stage of a line contributes the
-same delay, and stage delay depends on load. In the raw $10\times6$ grid the
-taps drive between one and ten latches, which would modulate the stage delays
-along the line and corrupt the thresholds. We therefore pad the array with 29
-dummy latches to a physically symmetric $10\times6$ arrangement: 31 active
-plus 29 dummy latches give every START tap and every STOP tap the same fan-out
-of ten latch inputs. The dummies are electrically identical to active latches;
-only their outputs are unused. The same uniformity argument adds one extra
-delay cell at the head of each line (11 and 7 cells in total), so that the
-first logical stage sees the same driver as all others.
+same delay, and stage delay depends on load. With only the 31 mapped latches
+in place, the taps would drive anywhere from one to ten latch inputs, which
+would modulate the stage delays along each line and corrupt the thresholds.
+We therefore fill the unused cells of the $10\times6$ array with 29 dummy
+latches, electrically identical to the active ones but with unused outputs:
+every START tap then drives exactly six latch inputs and every STOP tap
+exactly ten, so the load is uniform along each line. The same argument adds
+one extra delay cell at the head of each line (11 and 7 cells in total), so
+that the first logical stage sees the same driver as all others.
 
 Each latch carries an asynchronous clear input. The \SI{40}{\pico\second}
 RESET pulse from the testbench, widened through its own buffer tree, clears

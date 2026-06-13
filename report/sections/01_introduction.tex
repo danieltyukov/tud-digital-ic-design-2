@@ -3,15 +3,15 @@
 
 \subsection{Background and motivation}
 
-A time-to-digital converter quantizes the interval between two signal edges.
-In an all-digital PLL it replaces the analog phase detector and charge pump,
-which made TDCs standard in digital RF synthesis; they also appear in LiDAR
-and time-of-flight imaging \cite{staszewski2005, henzlerbook}. The basic flash TDC, a delay line sampled
+A time-to-digital converter (TDC) quantizes the interval between two signal
+edges. In an all-digital PLL it replaces the analog phase detector and charge
+pump, which made TDCs standard in digital RF synthesis
+\cite{staszewski2005, henzlerbook}. The basic flash TDC, a delay line sampled
 along its taps, has a resolution floor of one gate delay. In
 \SI{180}{\nano\meter} CMOS that floor is several tens of picoseconds under
-realistic loading (our own loaded stage measures \SI{97}{\pico\second} at
-fan-out-of-four sizing), above the \SI{20}{\pico\second} this project
-requires, so a sub-gate-delay technique is mandatory.
+realistic loading (our loaded stage bottoms out at \SI{97}{\pico\second} with
+conventional fan-out-of-four, FO=4, sizing), above the \SI{20}{\pico\second}
+this project requires, so a sub-gate-delay technique is mandatory.
 
 The Vernier principle reaches below the gate delay by racing two delay lines:
 the START edge propagates through stages of delay $\ttau{1}$ while the STOP
@@ -19,15 +19,14 @@ edge chases it through faster stages of delay $\ttau{2}$. The effective
 resolution is the difference $\tlsb=\ttau{1}-\ttau{2}$, which can be made
 arbitrarily small in principle \cite{dudek2000}. The classical one-dimensional
 implementation pays for this with hardware and latency: one stage pair and one
-arbiter per code, so range and resolution fight each other. Ring topologies
-reuse a short line to recover range at the cost of control complexity
-\cite{yu2010}; passive interpolation attacks the problem from the matching side
-\cite{henzler2008}. The two-dimensional Vernier of Liscidini, Vercesi and
-Castello \cite{liscidini2009, vercesi2010} instead compares \emph{every} START
-tap against \emph{every} STOP tap, so a grid of $N_X+N_Y$ stages covers
-$\mathcal{O}(N_X N_Y)$ distinct intervals. We chose this architecture: it
-decouples range from line length and suits a course budget measured in
-transistor width.
+arbiter per code, so range and resolution fight each other. Ring and
+interpolation variants recover range at the cost of control or matching
+complexity \cite{yu2010, henzler2008}. The two-dimensional (2-D) Vernier of
+Liscidini, Vercesi and Castello \cite{liscidini2009, vercesi2010} instead
+compares \emph{every} START tap against \emph{every} STOP tap, so a grid of
+$N_X+N_Y$ stages covers $\mathcal{O}(N_X N_Y)$ distinct intervals. We chose
+this architecture because it decouples range from line length at a low cell
+count.
 
 \subsection{Objectives and boundary conditions}
 
@@ -35,10 +34,9 @@ The EE4615 brief sets hard requirements and a design-quality trade-off
 (Table~\ref{tab:spec}). Every gate must be hand-designed in TSMC
 \SI{180}{\nano\meter} BCD; standard cells are not allowed. Verification is by
 Spectre simulation of the schematic, no layout. The course testbench fixes the
-interface: a \SI{40}{\pico\second} RESET pulse, START and STOP inputs each
-driven through $3\times$ minimum inverters, and 31 thermometer outputs
-$Q_{1..31}$, each loaded by the \texttt{TDC\_out} cell (two $2\times$ inverters
-and \SI{1}{\femto\farad}) \cite{ee4615tb}. Robustness must be demonstrated in
+interface: a \SI{40}{\pico\second} RESET pulse, START and STOP inputs driven
+through $3\times$ minimum inverters, and 31 thermometer outputs loaded by the
+\texttt{TDC\_out} cell \cite{ee4615tb}. Robustness must be demonstrated in
 the five process corners TT, SS, FF, SF and FS \cite{ee4615corner}.
 
 \begin{table}[H]
@@ -70,19 +68,16 @@ Figure of merit & energy per conversion step \\
 
 \subsection{Contributions and report structure}
 
-The delivered converter reaches a calibrated resolution of
+The delivered converter reaches a trimmed resolution of
 \SIrange{15.0}{15.85}{\pico\second} in all five corners with no missing codes.
-Beyond meeting the specification, the project contributes three results that we
-believe generalize: a quantified demonstration that fan-out-of-four sizing
-cannot reach the required stage delays in this technology, a replica-load
-sizing method for Vernier grids in which each tap drives on the order of twenty
-unit gates, and a measured one-dimensional versus two-dimensional comparison
-built from identical cells that isolates the architectural benefit from the
-circuit design.
+Three results carry the design: FO=4 sizing cannot reach the required stage
+delays in this technology, delay cells must be sized against the true in-grid
+load, and a measured 1-D versus 2-D comparison built from identical cells
+isolates the architectural benefit from the circuit design.
 
 Section~\ref{sec:arch} develops the architecture and the operating point.
 Section~\ref{sec:circuits} documents every cell with its transistor sizes.
 Section~\ref{sec:method} describes the design iterations and the verification
-setup. Section~\ref{sec:results} reports the corner, calibration, energy,
+setup. Section~\ref{sec:results} reports the corner, trimming, energy,
 metastability and comparison results, and Section~\ref{sec:conclusion}
 concludes.

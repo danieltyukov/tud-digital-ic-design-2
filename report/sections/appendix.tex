@@ -1,7 +1,7 @@
 \section{Per-corner trim configurations}
 \label{app:trim}
 
-Calibration sets the six trim-bank gates (\texttt{trim<0:2>} of each line) to
+Trimming sets the six trim-bank gates (\texttt{trim<0:2>} of each line) to
 \SI{0}{\volt} or \SI{1.8}{\volt}. Table~\ref{tab:trim} lists the winning
 configuration per corner from the exhaustive 64-point probe, together with the
 stage delays it produces. The FS optimum coincides with the default setting.
@@ -9,22 +9,21 @@ stage delays it produces. The FS optimum coincides with the default setting.
 \begin{table}[H]
 \centering
 \small
-\caption{Chosen trim-bank gate voltages per corner and resulting stage-level
-delays. Bank sizes: $2/20/21$ fingers ($\ttau{1}$), $2/14/18$ fingers
-($\ttau{2}$).}
+\caption{Trim codes per corner and the stage delays they produce. In the code
+$b_2 b_1 b_0$, bank $i$ is engaged when $b_i = 1$ (gate at \SI{1.8}{\volt});
+bank weights ($b_0/b_1/b_2$) are $2/20/21$ fingers on the $\ttau{1}$ cell and
+$2/14/18$ on the $\ttau{2}$ cell.}
 \label{tab:trim}
-\begin{tabular}{l ccc ccc S[table-format=2.1] S[table-format=2.1] S[table-format=2.2]}
+\begin{tabular}{l c c S[table-format=2.1] S[table-format=2.1] S[table-format=2.2]}
 \toprule
-& \multicolumn{3}{c}{$\ttau{1}$ banks (V)} & \multicolumn{3}{c}{$\ttau{2}$ banks (V)} & & & \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
-\textbf{Corner} & 0 & 1 & 2 & 0 & 1 & 2 &
+\textbf{Corner} & {$\ttau{1}$ code} & {$\ttau{2}$ code} &
 {$\ttau{1}$ (\si{\pico\second})} & {$\ttau{2}$ (\si{\pico\second})} & {$\tlsb$ (\si{\pico\second})} \\
 \midrule
-TT & 0   & 1.8 & 0   & 0   & 1.8 & 0   & 88.5 & 73.4 & 15.04 \\
-SS & 1.8 & 0   & 0   & 1.8 & 0   & 0   & 93.0 & 78.0 & 14.91 \\
-FF & 1.8 & 1.8 & 1.8 & 1.8 & 1.8 & 1.8 & 90.5 & 75.6 & 14.97 \\
-SF & 0   & 0   & 1.8 & 1.8 & 1.8 & 0   & 89.8 & 74.7 & 15.07 \\
-FS & 1.8 & 1.8 & 0   & 1.8 & 1.8 & 0   & 92.6 & 77.6 & 15.01 \\
+TT & 010 & 010 & 88.5 & 73.4 & 15.04 \\
+SS & 001 & 001 & 93.0 & 78.0 & 14.91 \\
+FF & 111 & 111 & 90.5 & 75.6 & 14.97 \\
+SF & 100 & 011 & 89.8 & 74.7 & 15.07 \\
+FS & 011 & 011 & 92.6 & 77.6 & 15.01 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -43,8 +42,7 @@ Table~\ref{tab:sigmaw} breaks the netlist-extracted $\sumw$ of
 \begin{table}[H]
 \centering
 \small
-\caption{$\sumw$ breakdown of the core (Spectre netlist, tuned variable
-values). MOSCAPs identified by drain, source and bulk tied together. The
+\caption{$\sumw$ breakdown of the core (Spectre netlist, TT trim setting). MOSCAPs identified by drain, source and bulk tied together. The
 grand total is quoted as \SI{1305.6}{\micro\meter} in the text.}
 \label{tab:sigmaw}
 \begin{tabular}{l S[table-format=4.2]}
@@ -79,10 +77,10 @@ All results are reproducible from the OCEAN scripts submitted with the design.
   corners, \SI{1.5}{\pico\second} delay step, 1670 transients; produces the
   transition tables behind Figs.~\ref{fig:staircase}--\ref{fig:linearity} and
   Table~\ref{tab:corners}.
-  \item \textbf{Calibration probe} (\texttt{tune\_probe.ocn}): 64 trim
+  \item \textbf{Trim probe} (\texttt{tune\_probe.ocn}): 64 trim
   configurations $\times$ 5 corners, 320 transients; produces
   Fig.~\ref{fig:calrange} and Table~\ref{tab:trim}.
-  \item \textbf{Calibrated campaign} (\texttt{tdc\_tuned\_all.ocn}): repeats
+  \item \textbf{Trimmed campaign} (\texttt{tdc\_tuned\_all.ocn}): repeats
   the corner campaign with per-corner trim codes; produces
   Fig.~\ref{fig:lsbtuned}.
   \item \textbf{Metastability} (\texttt{meta\_sweep\_\{coarse,fine,ultra\}.ocn}):

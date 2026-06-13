@@ -1,35 +1,27 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-We built and verified a 5-bit two-dimensional Vernier TDC in TSMC
-\SI{180}{\nano\meter} BCD that meets every project requirement with margin.
-With a single fixed trim setting the converter resolves
-\SIrange{13.1}{18.2}{\pico\second} across all five process corners with no
-missing codes (worst DNL \num{0.90} LSB); per-corner MOSCAP trimming
-re-centers the LSB to \SIrange{15.0}{15.85}{\pico\second}, a six times tighter
-spread, without changing a single device. The core consumes
-\SI{11.7}{\pico\joule} per conversion in the typical corner at a figure of
-merit of \SI{0.50}{\pico\joule} per step, within a total transistor width of
-\SI{1305.6}{\micro\meter}. The arbiter contributes an offset of 1\% of an LSB
-and a dead zone bounded below \SI{1}{\femto\second}, so the resolution is set
-by the architecture, not by the decision element.
+We built and verified a 5-bit 2-D Vernier TDC in TSMC \SI{180}{\nano\meter}
+BCD that meets every project requirement with margin: with one fixed trim
+setting it resolves \SIrange{13.1}{18.2}{\pico\second} across all five
+process corners with no missing codes, and per-corner trimming re-centers the
+LSB to \SIrange{15.0}{15.85}{\pico\second}, a six times tighter spread,
+without changing a single device.
 
-The evidence supports three conclusions beyond the headline numbers. First,
-delay-cell sizing for Vernier grids must be done against the in-grid load;
-the measured 1-D row shows the LSB doubling when tap loading is ignored.
-Second, fan-out equalization with dummy latches is what makes the grid
-thresholds usable; it costs 29 inactive cells and buys corner-independent
-linearity. Third, the bijective $k=6$ mapping removes all combining logic,
-and the only systematic linearity signature left, the period-6 wrap sawtooth,
-is architectural and identical in every corner.
+Three conclusions follow from the evidence. First, delay-cell sizing for
+Vernier grids must be done against the in-grid load; the measured 1-D row
+shows the LSB doubling when tap loading is ignored. Second, filling the grid
+with dummy latches is what makes the thresholds usable; it costs 29 inactive
+cells and buys corner-independent linearity. Third, the bijective $k=6$
+mapping removes all combining logic, and the only systematic linearity
+signature left, the period-6 wrap sawtooth, is architectural and identical in
+every corner.
 
 \paragraph{Recommendations.}
-Three extensions would add the most value. A DLL-style background loop could
-set the trim codes automatically, replacing the static calibration table. A
-voltage-to-time front end would let the TDC quantize voltages directly,
-addressing the course bonus. And a targeted capacitive correction at the four
-column-wrap codes could suppress the period-6 DNL pattern that calibration
-cannot reach. Layout and extracted re-simulation remain the natural next step
-toward silicon; the schematic-level margins reported here (\SI{4}{\pico\second}
-on resolution, four orders of magnitude on the dead zone) leave realistic room
-for parasitic degradation.
+A DLL-style background loop could set the trim codes automatically, and a
+voltage-to-time front end would extend the TDC to voltage quantization. The
+most direct improvement, however, is a targeted capacitive correction at the
+four column-wrap codes, which follows immediately from the measured DNL
+pattern. Layout and extracted re-simulation are the natural next step toward
+silicon; the margins reported here leave realistic room for parasitic
+degradation.

@@ -268,7 +268,6 @@ INPUT ./figures/delay_tau2.pdf
 INPUT ./figures/delay_tau2.pdf
 INPUT ./figures/delay_tau2.pdf
 INPUT ./figures/delay_tau2.pdf
-INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm
 INPUT ./figures/srlatch.pdf
 INPUT ./figures/srlatch.pdf
 INPUT ./figures/srlatch.pdf
@@ -341,6 +340,7 @@ INPUT ./figures/dnl_1d_vs_2d.png
 INPUT ./sections/06_conclusion.tex
 INPUT ./sections/06_conclusion.tex
 INPUT sections/06_conclusion.tex
+INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm
 INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmti10.tfm
 INPUT ./sections/appendix.tex
 INPUT ./sections/appendix.tex

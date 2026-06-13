@@ -64,7 +64,7 @@
 
 \begin{minipage}{0.85\textwidth}
 \centering\small
-5-bit thermometer output, calibrated resolution \SIrange{15.0}{15.85}{\pico\second},
+5-bit thermometer output, trimmed resolution \SIrange{15.0}{15.85}{\pico\second},
 validated in all five process corners.\\
 Schematic and Spectre simulation only; every cell hand-designed in
 TSMC \SI{180}{\nano\meter} BCD.
@@ -83,26 +83,21 @@ TSMC \SI{180}{\nano\meter} BCD.
 \begin{abstract}
 \noindent
 This report presents the design and verification of a 5-bit two-dimensional
-Vernier time-to-digital converter (TDC) in TSMC \SI{180}{\nano\meter} BCD.
-Two delay lines with $\ttau{1}=\SI{90}{\pico\second}$ and
+(2-D) Vernier time-to-digital converter (TDC) in TSMC \SI{180}{\nano\meter}
+BCD. Two delay lines with $\ttau{1}=\SI{90}{\pico\second}$ and
 $\ttau{2}=\SI{75}{\pico\second}$ span a $10\times6$ comparison grid whose 31
-thermometer levels each map to exactly one SR-latch arbiter, so no combining
-logic is needed. The resolution $\tlsb=\ttau{1}-\ttau{2}=\SI{15}{\pico\second}$
-sits well below the \SI{20}{\pico\second} specification and below the
-technology gate delay. Three design decisions carry the result: fan-out-of-one
-delay cells that break the \SI{97}{\pico\second} floor of conventional
-fan-out-of-four sizing, characterization against a replica of the true in-grid
-load of roughly twenty unit inverters, and dummy latches that equalize the
-fan-out of every tap. With one fixed trim setting the converter passes all sign-off checks
-in all five process corners (LSB \SIrange{13.1}{18.2}{\pico\second}, worst DNL
-\num{0.90} LSB, no missing codes). Switched MOSCAP trim banks then re-center
-the LSB per corner to \SIrange{15.0}{15.85}{\pico\second}, a six times tighter
-spread. The core measures \SI{11.7}{\pico\joule} per conversion at a figure of
-merit of \SI{0.50}{\pico\joule} per step, with a total transistor width of
-\SI{1305.6}{\micro\meter}. The arbiter dead zone is below \SI{1}{\femto\second}.
-A one-dimensional Vernier row built from the same cells was measured for
-comparison and confirms both the loading analysis and the area advantage of the
-two-dimensional architecture.
+thermometer levels each map to exactly one SR-latch arbiter, giving a
+resolution $\tlsb=\ttau{1}-\ttau{2}=\SI{15}{\pico\second}$, below the
+\SI{20}{\pico\second} specification and below the technology gate delay. With
+one fixed trim setting the converter passes all sign-off checks in all five
+process corners (LSB \SIrange{13.1}{18.2}{\pico\second}, worst DNL \num{0.90}
+LSB, no missing codes); per-corner MOSCAP trimming re-centers the LSB to
+\SIrange{15.0}{15.85}{\pico\second}, a six times tighter corner spread. The
+core consumes \SI{11.7}{\pico\joule} per conversion at a figure of merit of
+\SI{0.50}{\pico\joule} per step within a total transistor width of
+\SI{1305.6}{\micro\meter}, and the arbiter dead zone is below
+\SI{1}{\femto\second}. A 1-D Vernier row built from the same cells confirms
+the resolution and area advantage of the 2-D architecture.
 \end{abstract}
 
 \vspace{0.5em}
